@@ -24,7 +24,7 @@ public record World(Thing thing, Function<Vector, Color> background, int depth) 
         Effect effect = hit.material().effectOf(hit);
         var newColor = color.mul(effect.color());
         return effect instanceof Effect.Redirection redirection ?
-            trace(hit.position().inDirectionOf(redirection.vector()), newColor, depth - 1) :
+            trace(Ray.of(hit.ray().time(), hit.position(), redirection.vector()), newColor, depth - 1) :
             newColor;
     }
 

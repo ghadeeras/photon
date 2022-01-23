@@ -3,33 +3,27 @@ package io.github.ghadeeras.photon;
 import io.github.ghadeeras.photon.structs.Ray;
 import io.github.ghadeeras.photon.structs.Vector;
 
-import java.util.function.Function;
+public record Lens(double focalLength) {
 
-public class Lens {
-
-    public final double focalLength;
-    public final double focalDistance;
-    public final double aperture;
-
-    private final Function<Vector, Ray> ray;
-
-    public Lens(double focalLength, double focalDistance, double aperture) {
-        this.aperture = aperture;
-        this.focalDistance = focalDistance;
-        this.focalLength = focalLength;
-
+    public Focuser focuser(double aperture, double focalDistance) {
         var relativeFocalDistance = focalDistance / focalLength;
-        this.ray = aperture == 0 ?
-            Vector::asRay :
-            p -> defocusedRay(p, relativeFocalDistance);
+        return aperture == 0 ?
+            (p, t) -> atFocalLength(p).asRay(t) :
+            (p, t) -> randomLensPoint(aperture).towards(atFocalLength(p).scale(relativeFocalDistance), t);
     }
 
-    private Ray defocusedRay(Vector point, double relativeFocalDistance) {
-        return RND.randomVectorInDisk(0, aperture).towards(point.scale(relativeFocalDistance));
+    private Vector atFocalLength(Vector point) {
+        return Vector.of(point.x(), point.y(), -focalLength);
     }
 
-    public Ray ray(Vector point) {
-        return ray.apply(Vector.of(point.x(), point.y(), -focalLength));
+    private Vector randomLensPoint(double aperture) {
+        return RND.randomVectorInDisk(0, aperture);
+    }
+
+    public interface Focuser {
+
+        Ray ray(Vector point, double time);
+
     }
 
 }

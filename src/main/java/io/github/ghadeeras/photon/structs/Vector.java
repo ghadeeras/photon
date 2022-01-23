@@ -40,16 +40,16 @@ public record Vector(double x, double y, double z) {
         return scale(1 / length());
     }
 
-    public Ray towards(Vector that) {
-        return Ray.of(this, that.minus(this));
+    public Ray towards(Vector that, double time) {
+        return Ray.of(time, this, that.minus(this));
     }
 
-    public Ray inDirectionOf(Vector direction) {
-        return Ray.of(this, direction);
+    public Ray inDirectionOf(Vector direction, double time) {
+        return Ray.of(time, this, direction);
     }
 
-    public Ray asRay() {
-        return zero.towards(this);
+    public Ray asRay(double time) {
+        return zero.towards(this, time);
     }
 
 }

@@ -32,7 +32,7 @@ public class Globes {
         var distance = 100;
 
         var subject = ThingsSet.of(
-            Sphere.of(glass, 1).translated(1, 1, 1),
+            Sphere.of(reddishMatte, 1).translated(1, 1, 1, Vector.of(-0.1, -0.1, -0.1)),
             Sphere.of(bluishMatte, 2).translated(-1, -1, -1),
             Sphere.of(gold, 2).translated(-2, 3, -1),
             Sphere.of(silver, 3).translated(4, 0, -8),
@@ -42,6 +42,8 @@ public class Globes {
 
         var focalLength = 30;
         var aperture = 0;
+        var exposure = 7.5;
+        var focalDistance = distance - 1;
         var gain = 1;
 
         var frameWidth = 960;
@@ -54,11 +56,14 @@ public class Globes {
 
         var camera = new Camera(
             newSensor(RegularSampling::of, quality, gain, aspect, frameWidth),
-            new Lens(focalLength, distance - 1, aperture)
+            new Lens(focalLength),
+            focalDistance,
+            aperture,
+            exposure
         );
 
-        var image = camera.render(world);
-        PNG.saveTo("Globes.png", image);
+        var image = camera.render(world, 0);
+        PNG.saveTo("_Globes.png", image);
     }
 
     private static Sensor newSensor(Function<Integer, Sampling> samplingFunction, double quality, double gain, double aspect, int frameWidth) {
