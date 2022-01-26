@@ -1,28 +1,30 @@
 package io.github.ghadeeras.photon.things;
 
+import io.github.ghadeeras.photon.Box;
 import io.github.ghadeeras.photon.Thing;
+import io.github.ghadeeras.photon.Transformation;
 import io.github.ghadeeras.photon.structs.Incident;
 import io.github.ghadeeras.photon.structs.Ray;
 
-public interface Transformed<T extends Thing, I> extends Thing {
+import java.util.List;
 
-    default Incident incident(Ray ray, double min, double max) {
-        var instance = instance(ray);
-        var localRay = toLocal(ray, instance);
-        var localIncident = thing().incident(localRay, min, max);
-        return toGlobal(localIncident, ray, instance);
+import static java.util.stream.Collectors.toList;
+
+public record Transformed<T extends Thing, I>(T thing, Transformation<I> transformation) implements Thing {
+
+    @Override
+    public Incident incident(Ray ray, double min, double max) {
+        return transformation.incident(thing, ray, min, max);
     }
 
-    default Incident toGlobal(Incident localIncident, Ray globalRay, I instance) {
-        return localIncident instanceof Incident.Hit hit ? toGlobal(hit, globalRay, instance) : localIncident;
+    @Override
+    public Box boundingVolume(double time1, double time2) {
+        return transformation.boundingVolume(thing.boundingVolume(time1, time2), time1, time2);
     }
 
-    I instance(Ray ray);
-
-    Incident.Hit toGlobal(Incident.Hit localHit, Ray globalRay, I instance);
-
-    Ray toLocal(Ray globalRay, I instance);
-
-    T thing();
+    @Override
+    public List<Thing> flatten() {
+        return thing.flatten().stream().map(transformation::transform).collect(toList());
+    }
 
 }

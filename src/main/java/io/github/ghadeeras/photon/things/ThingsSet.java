@@ -1,8 +1,13 @@
 package io.github.ghadeeras.photon.things;
 
+import io.github.ghadeeras.photon.Box;
 import io.github.ghadeeras.photon.Thing;
 import io.github.ghadeeras.photon.structs.Incident;
 import io.github.ghadeeras.photon.structs.Ray;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 
 public record ThingsSet(Thing... things) implements Thing {
 
@@ -21,6 +26,19 @@ public record ThingsSet(Thing... things) implements Thing {
             }
         }
         return result;
+    }
+
+    @Override
+    public Box boundingVolume(double time1, double time2) {
+        return Stream.of(things)
+            .map(thing -> thing.boundingVolume(time1, time2))
+            .reduce(Box::enclose)
+            .orElseThrow(() -> new RuntimeException("Empty thing sets are not supported!"));
+    }
+
+    @Override
+    public List<Thing> flatten() {
+        return Arrays.asList(things);
     }
 
 }
