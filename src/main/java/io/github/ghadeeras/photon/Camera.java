@@ -25,7 +25,8 @@ public final class Camera {
     }
 
     public Image render(World world, double time) {
-        return sensor.render(samplePos -> world.trace(focuser.ray(samplePos, before(time))));
+        final var optimizedWorld = new World(world.thing().optimized(time - exposure, time), world.background(), world.depth());
+        return sensor.render(samplePos -> optimizedWorld.trace(focuser.ray(samplePos, before(time))));
     }
 
     private double before(double time) {

@@ -40,7 +40,9 @@ public record Sphere(Material material, double radius) implements Thing {
     public Box boundingVolume(double time1, double time2) {
         return new Box(
             Vector.of(-radius, -radius, -radius),
-            Vector.of(+radius, +radius, +radius)
+            Vector.of(+radius, +radius, +radius),
+            time1,
+            time2
         );
     }
 

@@ -38,7 +38,7 @@ public sealed interface Range {
             }
             return new Bounded(
                 Math.max(this.min, that.min),
-                Math.max(this.min, that.min)
+                Math.min(this.max, that.max)
             );
         }
 

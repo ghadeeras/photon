@@ -38,10 +38,12 @@ public record Translation(DoubleFunction<Vector> position) implements Transforma
 
     @Override
     public Box boundingVolume(Box box, double time1, double time2) {
-        Box movement = new Box(position.apply(time1), position.apply(time2));
+        Box movement = new Box(position.apply(time1), position.apply(time2), time1, time2);
         return new Box(
             box.min().plus(movement.min()),
-            box.max().plus(movement.max())
+            box.max().plus(movement.max()),
+            time1,
+            time2
         );
     }
 }

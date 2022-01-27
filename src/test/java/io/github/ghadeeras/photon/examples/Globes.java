@@ -32,7 +32,7 @@ public class Globes {
         var distance = 100;
 
         var subject = ThingsSet.of(
-            Sphere.of(reddishMatte, 1).translated(1, 1, 1, Vector.of(-0.1, -0.1, -0.1)),
+            Sphere.of(glass, 1).translated(1, 1, 1, Vector.of(-0.1, -0.1, -0.1)),
             Sphere.of(bluishMatte, 2).translated(-1, -1, -1),
             Sphere.of(gold, 2).translated(-2, 3, -1),
             Sphere.of(silver, 3).translated(4, 0, -8),

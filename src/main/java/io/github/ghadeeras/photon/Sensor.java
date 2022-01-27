@@ -41,6 +41,7 @@ public class Sensor {
     private void renderTo(Image image, Function<Vector, Color> projection) {
         var threads = Runtime.getRuntime().availableProcessors();
         System.out.printf("Spawning %s threads ...%n", threads);
+//        renderPixel(projection, image.width / 4, 0);
         var service = Executors.newFixedThreadPool(threads);
         var futureRows = renderConcurrentlyTo(image, projection, service);
         waitFor(futureRows);
