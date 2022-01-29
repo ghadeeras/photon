@@ -8,11 +8,46 @@ public sealed interface Incident {
     Miss miss = new Miss();
 
     static Hit hit(Ray ray, Thing thing, Material material, Vector point, Vector normal, double distance) {
-        return new Hit(ray, thing, material, point, normal, distance);
+        return new Hit.Local(ray, thing, material, point, normal, distance);
     }
 
     record Miss() implements Incident {}
 
-    record Hit(Ray ray, Thing thing, Material material, Vector position, Vector normal, double distance) implements Incident {}
+    sealed interface Hit extends Incident {
+
+        Local localHit();
+
+        Ray ray();
+
+        Thing thing();
+
+        Material material();
+
+        Vector position();
+
+        Vector normal();
+
+        double distance();
+
+        default Global globalHit(Ray ray, Thing thing, Material material, Vector position, Vector normal, double distance) {
+            return new Global(localHit(), ray, thing, material, position, normal, distance);
+        }
+
+        default Vector surfacePosition() {
+            return thing().surfacePosition(localHit());
+        }
+
+        record Local(Ray ray, Thing thing, Material material, Vector position, Vector normal, double distance) implements Hit {
+
+            @Override
+            public Local localHit() {
+                return this;
+            }
+
+        }
+
+        record Global(Local localHit, Ray ray, Thing thing, Material material, Vector position, Vector normal, double distance) implements Hit {}
+
+    }
 
 }

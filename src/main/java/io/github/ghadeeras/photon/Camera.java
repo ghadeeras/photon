@@ -24,8 +24,8 @@ public final class Camera {
         this.exponentialExposure = 1 - Math.exp(-exposure);
     }
 
-    public Image render(World world, double time) {
-        final var optimizedWorld = new World(world.thing().optimized(time - exposure, time), world.background(), world.depth());
+    public Image render(World world, double time, boolean withOptimization) {
+        final var optimizedWorld = withOptimization ? world.optimized(time - exposure, time) : world;
         return sensor.render(samplePos -> optimizedWorld.trace(focuser.ray(samplePos, before(time))));
     }
 

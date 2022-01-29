@@ -28,4 +28,8 @@ public record World(Thing thing, Function<Vector, Color> background, int depth) 
             newColor;
     }
 
+    public World optimized(double time1, double time2) {
+        return new World(thing.optimized(time1, time2), background, depth);
+    }
+
 }

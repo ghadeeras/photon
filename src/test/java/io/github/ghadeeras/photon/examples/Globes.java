@@ -18,10 +18,17 @@ public class Globes {
         // Materials
         var reddishMatte = Diffusive.of(Color.of(0.8, 0.4, 0.2));
         var bluishMatte = Diffusive.of(Color.of(0.2, 0.4, 0.8));
+        var yellowMatte = Diffusive.of(Color.of(1, 1, 0));
+        var shinyGold = Reflective.of(Color.of(1, 1, 0));
         var gold = Composite.of(
-            Reflective.of(Color.of(1, 1, 0)).withWeight(0.6),
-            Diffusive.of(Color.of(1, 1, 0)).withWeight(0.4)
+            shinyGold.withWeight(0.6),
+            yellowMatte.withWeight(0.4)
         );
+        var textured = Textured.with(p -> {
+            var x = (int) Math.floor(5 * p.x() + 0.5);
+            var y = (int) Math.floor(5 * p.y());
+            return (x + y) % 2 == 0 ? shinyGold : reddishMatte;
+        });
         var silver = Composite.of(
             Reflective.of(Color.of(1, 1, 1)).withWeight(0.7),
             Diffusive.of(Color.of(1, 1, 1)).withWeight(0.3)
@@ -34,7 +41,7 @@ public class Globes {
         var subject = ThingsSet.of(
             Sphere.of(glass, 1).translated(1, 1, 1, Vector.of(-0.1, -0.1, -0.1)),
             Sphere.of(bluishMatte, 2).translated(-1, -1, -1),
-            Sphere.of(gold, 2).translated(-2, 3, -1),
+            Sphere.of(textured, 2).translated(-2, 3, -1),
             Sphere.of(silver, 3).translated(4, 0, -8),
             Sphere.of(light, 10).translated(20, 20, 20)
         ).translated(0, 0, -distance);
@@ -42,7 +49,7 @@ public class Globes {
 
         var focalLength = 30;
         var aperture = 0;
-        var exposure = 7.5;
+        var exposure = 0; // 7.5;
         var focalDistance = distance - 1;
         var gain = 1;
 
@@ -62,7 +69,7 @@ public class Globes {
             exposure
         );
 
-        var image = camera.render(world, 0);
+        var image = camera.render(world, 0, false);
         PNG.saveTo("_Globes.png", image);
     }
 

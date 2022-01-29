@@ -25,8 +25,8 @@ public record Translation(DoubleFunction<Vector> position) implements Transforma
     }
 
     @Override
-    public Incident.Hit toGlobal(Vector instancePosition, Incident.Hit localHit, Ray globalRay) {
-        return Incident.hit(
+    public Incident.Hit.Global toGlobal(Vector instancePosition, Incident.Hit localHit, Ray globalRay) {
+        return localHit.globalHit(
             globalRay,
             localHit.thing(),
             localHit.material(),

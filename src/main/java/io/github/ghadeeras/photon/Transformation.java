@@ -24,7 +24,7 @@ public interface Transformation<I> {
         return localIncident instanceof Incident.Hit hit ? toGlobal(instance, hit, globalRay) : localIncident;
     }
 
-    Incident.Hit toGlobal(I instance, Incident.Hit localHit, Ray globalRay);
+    Incident.Hit.Global toGlobal(I instance, Incident.Hit localHit, Ray globalRay);
 
     Box boundingVolume(Box box, double time1, double time2);
 

@@ -47,6 +47,14 @@ public record Sphere(Material material, double radius) implements Thing {
     }
 
     @Override
+    public Vector surfacePosition(Incident.Hit.Local hit) {
+        var p = hit.normal();
+        var a = Math.atan2(p.x(), p.z()) / Math.PI;
+        var b = Math.acos(p.y()) / Math.PI + 0.5;
+        return Vector.of(a, b, 0);
+    }
+
+    @Override
     public List<Thing> flatten() {
         return singletonList(this);
     }

@@ -16,6 +16,10 @@ public interface Thing {
 
     Box boundingVolume(double time1, double time2);
 
+    default Vector surfacePosition(Incident.Hit.Local localHit) {
+        return localHit.position();
+    }
+
     List<Thing> flatten();
 
     default Thing optimized(double time1, double time2) {
