@@ -3,6 +3,7 @@ package io.github.ghadeeras.photon;
 import io.github.ghadeeras.photon.structs.Vector;
 
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.IntStream;
 
 public class RND {
 
@@ -55,6 +56,17 @@ public class RND {
                 return Vector.of(x, y, 0);
             }
         }
+    }
+
+    public static int[] randomIndices(int count) {
+        var result = IntStream.range(0, count).toArray();
+        for (int i = count - 1; i > 0; i--) {
+            int j = ThreadLocalRandom.current().nextInt(i);
+            int n = result[i];
+            result[i] = result[j];
+            result[j] = n;
+        }
+        return result;
     }
 
 }

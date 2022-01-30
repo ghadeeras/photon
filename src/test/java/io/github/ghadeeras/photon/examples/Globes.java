@@ -3,6 +3,8 @@ package io.github.ghadeeras.photon.examples;
 import io.github.ghadeeras.photon.*;
 import io.github.ghadeeras.photon.imaging.PNG;
 import io.github.ghadeeras.photon.materials.*;
+import io.github.ghadeeras.photon.noise.Perlin;
+import io.github.ghadeeras.photon.noise.Sharpener;
 import io.github.ghadeeras.photon.sampling.RegularSampling;
 import io.github.ghadeeras.photon.structs.Color;
 import io.github.ghadeeras.photon.structs.Vector;
@@ -17,22 +19,30 @@ public class Globes {
     public static void main(String[] args) throws IOException {
         // Materials
         var reddishMatte = Diffusive.of(Color.of(0.8, 0.4, 0.2));
-        var bluishMatte = Diffusive.of(Color.of(0.2, 0.4, 0.8));
         var yellowMatte = Diffusive.of(Color.of(1, 1, 0));
         var shinyGold = Reflective.of(Color.of(1, 1, 0));
         var gold = Composite.of(
             shinyGold.withWeight(0.6),
             yellowMatte.withWeight(0.4)
         );
-        var textured = Textured.with(p -> {
+        var textured = Textured.with(h -> {
+            var p = h.surfacePosition();
             var x = (int) Math.floor(5 * p.x() + 0.5);
             var y = (int) Math.floor(5 * p.y());
             return (x + y) % 2 == 0 ? shinyGold : reddishMatte;
         });
-        var silver = Composite.of(
-            Reflective.of(Color.of(1, 1, 1)).withWeight(0.7),
-            Diffusive.of(Color.of(1, 1, 1)).withWeight(0.3)
-        );
+        var bluish = Color.of(0.2, 0.4, 0.8);
+        Perlin perlin = new Perlin();
+        var noise = new Sharpener(p -> Math.abs(perlin.noise(p)), 7);
+        var bluishMatte = Textured.with(h -> Diffusive.of(bluish.scale((noise.noise(h.localHit().position().scale(3)) + 1) / 2)));
+        var silver = Textured.with(h -> {
+            var position = h.localHit().position();
+            var color = Color.whiteShade(Math.abs(Math.sin(2 * position.y() + noise.noise(position.scale(2)))));
+            return Composite.of(
+                Reflective.of(color).withWeight(0.7),
+                Diffusive.of(color).withWeight(0.3)
+            );
+        });
         var glass = Refractive.of(1.5, Color.colorWhite);
         var light = Emissive.of(Color.whiteShade(16));
 

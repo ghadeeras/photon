@@ -6,17 +6,28 @@ import io.github.ghadeeras.photon.structs.Color;
 import io.github.ghadeeras.photon.structs.Effect;
 import io.github.ghadeeras.photon.structs.Incident;
 
-import java.util.stream.Stream;
-
 public record Composite(WeightedMaterial... materials) implements Material {
 
     public Composite(WeightedMaterial... materials) {
-        var weightSum = Stream.of(materials)
-            .map(WeightedMaterial::weight)
-            .reduce(0.0, Double::sum);
-        this.materials = Stream.of(materials)
-            .map(material -> material.material().withWeight(material.weight / weightSum))
-            .toArray(WeightedMaterial[]::new);
+        var weightSum = weightSum(materials);
+        this.materials = weightSum == 1 ? materials : normalizeWeights(materials, weightSum);
+    }
+
+    private static double weightSum(WeightedMaterial[] materials) {
+        var sum = 0D ;
+        for (var material : materials) {
+            sum += material.weight;
+        }
+        return sum;
+    }
+
+    private static WeightedMaterial[] normalizeWeights(WeightedMaterial[] materials, double weightSum) {
+        var result = new WeightedMaterial[materials.length];
+        for (int i = 0; i < materials.length; i++) {
+            var material = materials[i];
+            result[i] = material.withWeight(material.weight / weightSum);
+        }
+        return result;
     }
 
     public static Composite of(WeightedMaterial... materials) {
