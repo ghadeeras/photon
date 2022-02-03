@@ -10,13 +10,13 @@ public interface Transformation<I> {
     }
 
     default Incident incident(Thing thing, Ray ray, double min, double max) {
-        var instance = instance(ray);
+        var instance = instance(ray.time());
         var localRay = toLocal(instance, ray);
         var localIncident = thing.incident(localRay, min, max);
         return toGlobal(instance, localIncident, ray);
     }
 
-    I instance(Ray ray);
+    I instance(double time);
 
     Ray toLocal(I instance, Ray globalRay);
 
@@ -26,6 +26,6 @@ public interface Transformation<I> {
 
     Incident.Hit.Global toGlobal(I instance, Incident.Hit localHit, Ray globalRay);
 
-    Box boundingVolume(Box box, double time1, double time2);
+    BoundingBox boundingVolume(BoundingBox box, double time1, double time2);
 
 }

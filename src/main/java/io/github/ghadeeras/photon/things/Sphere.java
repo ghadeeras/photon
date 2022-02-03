@@ -1,6 +1,6 @@
 package io.github.ghadeeras.photon.things;
 
-import io.github.ghadeeras.photon.Box;
+import io.github.ghadeeras.photon.BoundingBox;
 import io.github.ghadeeras.photon.Material;
 import io.github.ghadeeras.photon.Thing;
 import io.github.ghadeeras.photon.structs.Incident;
@@ -19,8 +19,9 @@ public record Sphere(Material material, double radius) implements Thing {
 
     @Override
     public Incident incident(Ray ray, double min, double max) {
-        var halfB = ray.direction().dot(ray.origin());
-        var c = ray.origin().lengthSquared() - radius * radius;
+        var directionLengthSquared = ray.direction().lengthSquared();
+        var halfB = ray.direction().dot(ray.origin()) / directionLengthSquared;
+        var c = (ray.origin().lengthSquared() - radius * radius) / directionLengthSquared;
         if (c != 0) {
             var d = halfB * halfB - c;
             if (d <= 0) {
@@ -37,8 +38,8 @@ public record Sphere(Material material, double radius) implements Thing {
     }
 
     @Override
-    public Box boundingVolume(double time1, double time2) {
-        return new Box(
+    public BoundingBox boundingVolume(double time1, double time2) {
+        return new BoundingBox(
             Vector.of(-radius, -radius, -radius),
             Vector.of(+radius, +radius, +radius),
             time1,

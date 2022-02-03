@@ -10,9 +10,9 @@ import java.util.function.ToDoubleFunction;
 
 import static java.util.Comparator.comparing;
 
-public record Box(Vector min, Vector max, double time1, double time2) {
+public record BoundingBox(Vector min, Vector max, double time1, double time2) {
 
-    public Box(Vector min, Vector max, double time1, double time2) {
+    public BoundingBox(Vector min, Vector max, double time1, double time2) {
         var xRange = new Range.Bounded(min.x(), max.x());
         var yRange = new Range.Bounded(min.y(), max.y());
         var zRange = new Range.Bounded(min.z(), max.z());
@@ -53,12 +53,12 @@ public record Box(Vector min, Vector max, double time1, double time2) {
         return list;
     }
 
-    public Box enclose(Box that) {
+    public BoundingBox enclose(BoundingBox that) {
         var time1 = Math.max(this.time1, that.time1);
         var time2 = Math.min(this.time2, that.time2);
-        var box1 = new Box(this.min, that.min, time1, time2);
-        var box2 = new Box(this.max, that.max, time1, time2);
-        return new Box(box1.min, box2.max, time1, time2);
+        var box1 = new BoundingBox(this.min, that.min, time1, time2);
+        var box2 = new BoundingBox(this.max, that.max, time1, time2);
+        return new BoundingBox(box1.min, box2.max, time1, time2);
     }
 
     public Range potentialHitRange(Ray ray, double min, double max) {

@@ -32,7 +32,7 @@ public class Globes {
             return (x + y) % 2 == 0 ? shinyGold : reddishMatte;
         });
         var bluish = Color.of(0.2, 0.4, 0.8);
-        Perlin perlin = new Perlin();
+        var perlin = new Perlin();
         var noise = new Sharpener(p -> Math.abs(perlin.noise(p)), 7);
         var bluishMatte = Textured.with(h -> Diffusive.of(bluish.scale((noise.noise(h.localHit().position().scale(3)) + 1) / 2)));
         var silver = Textured.with(h -> {
@@ -49,17 +49,24 @@ public class Globes {
         var distance = 100;
 
         var subject = ThingsSet.of(
-            Sphere.of(glass, 1).translated(1, 1, 1, Vector.of(-0.1, -0.1, -0.1)),
+            Sphere.of(glass, 1).translated(1, 1, 1),
             Sphere.of(bluishMatte, 2).translated(-1, -1, -1),
-            Sphere.of(textured, 2).translated(-2, 3, -1),
-            Sphere.of(silver, 3).translated(4, 0, -8),
+            Sphere.of(textured, 2)
+                .scaled(Vector.of(0, 1, 0), 0.5, 1)
+//                .rotated(Vector.of(0, 1, 0), t -> t * Math.PI / 45)
+                .rotated(Vector.of(1, 0, -1), -Math.PI / 6)
+                .translated(-2, 2, -1),
+            Sphere.of(silver, 3)
+                .scaled(Vector.of(0, 1, 0), 1, 2D / 3)
+                .rotated(Vector.of(2, 0, 1), -Math.PI / 6)
+                .translated(3, 0, -8),
             Sphere.of(light, 10).translated(20, 20, 20)
         ).translated(0, 0, -distance);
 
 
         var focalLength = 30;
         var aperture = 0;
-        var exposure = 0; // 7.5;
+        var exposure = 0;
         var focalDistance = distance - 1;
         var gain = 1;
 

@@ -4,14 +4,12 @@ import io.github.ghadeeras.photon.Thing;
 
 public record Ray(Vector origin, Vector direction, double time) {
 
-    public Ray(Vector origin, Vector direction, double time) {
-        this.time = time;
-        this.origin = origin;
-        this.direction = direction.unit();
-    }
-
     public static Ray of(double time, Vector origin, Vector direction) {
         return new Ray(origin, direction, time);
+    }
+
+    public Ray unit() {
+        return new Ray(origin, direction.unit(), time);
     }
 
     public Vector at(double length) {

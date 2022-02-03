@@ -1,6 +1,6 @@
 package io.github.ghadeeras.photon.transformations;
 
-import io.github.ghadeeras.photon.Box;
+import io.github.ghadeeras.photon.BoundingBox;
 import io.github.ghadeeras.photon.Transformation;
 import io.github.ghadeeras.photon.structs.Incident;
 import io.github.ghadeeras.photon.structs.Ray;
@@ -11,8 +11,8 @@ import java.util.function.DoubleFunction;
 public record Translation(DoubleFunction<Vector> position) implements Transformation<Vector> {
 
     @Override
-    public Vector instance(Ray ray) {
-        return position.apply(ray.time());
+    public Vector instance(double time) {
+        return position.apply(time);
     }
 
     @Override
@@ -28,8 +28,6 @@ public record Translation(DoubleFunction<Vector> position) implements Transforma
     public Incident.Hit.Global toGlobal(Vector instancePosition, Incident.Hit localHit, Ray globalRay) {
         return localHit.globalHit(
             globalRay,
-            localHit.thing(),
-            localHit.material(),
             localHit.position().plus(instancePosition),
             localHit.normal(),
             localHit.distance()
@@ -37,11 +35,11 @@ public record Translation(DoubleFunction<Vector> position) implements Transforma
     }
 
     @Override
-    public Box boundingVolume(Box box, double time1, double time2) {
-        Box movement = new Box(position.apply(time1), position.apply(time2), time1, time2);
-        return new Box(
-            box.min().plus(movement.min()),
-            box.max().plus(movement.max()),
+    public BoundingBox boundingVolume(BoundingBox boundingBox, double time1, double time2) {
+        BoundingBox movement = new BoundingBox(instance(time1), instance(time2), time1, time2);
+        return new BoundingBox(
+            boundingBox.min().plus(movement.min()),
+            boundingBox.max().plus(movement.max()),
             time1,
             time2
         );

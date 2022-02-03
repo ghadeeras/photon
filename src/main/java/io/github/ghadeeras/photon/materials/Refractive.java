@@ -35,21 +35,31 @@ public record Refractive(double index, Color color, double fuzziness, DoubleUnar
     }
 
     private Vector redirection(Vector incident, Vector normal) {
-        var cosAngle = Math.min(Math.max(normal.dot(incident), -1), 1);
-        var reciprocatedIndex = cosAngle < 0 ? 1 / this.index : this.index;
-        var perpendicularIncident = normal.scale(cosAngle);
-        var parallelIncident = incident.minus(perpendicularIncident);
-        var parallelRefraction = parallelIncident.scale(reciprocatedIndex);
-        var parallelRefractionLengthSquared = parallelRefraction.lengthSquared();
-        if (parallelRefractionLengthSquared < 1 && RND.anyUnsigned() >= reflectance.applyAsDouble(cosAngle)) {
-            var perpendicularRefractionLengthSquared = 1 - parallelRefractionLengthSquared;
-            var perpendicularRefraction = normal.scale(Math.sqrt(perpendicularRefractionLengthSquared));
-            return cosAngle < 0 ?
-                parallelRefraction.minus(perpendicularRefraction) :
-                parallelRefraction.plus(perpendicularRefraction);
+        var incidentPerpendicularComponentValue = normal.dot(incident);
+        var reciprocatedIndex = incidentPerpendicularComponentValue < 0 ? 1 / this.index : this.index;
+        var incidentPerpendicularComponent = normal.scale(incidentPerpendicularComponentValue);
+        var incidentParallelComponent = incident.minus(incidentPerpendicularComponent);
+        var refractionParallelComponent = incidentParallelComponent.scale(reciprocatedIndex);
+        var refractionParallelComponentLengthSquared = refractionParallelComponent.lengthSquared();
+        var refractionPerpendicularComponentLengthSquared = refractionPerpendicularComponentLengthSquared(refractionParallelComponentLengthSquared, incidentPerpendicularComponentValue, incident);
+        if (refractionPerpendicularComponentLengthSquared >= 0) {
+            var refractionPerpendicularComponent = normal.scale(Math.sqrt(refractionPerpendicularComponentLengthSquared));
+            return incidentPerpendicularComponentValue < 0 ?
+                refractionParallelComponent.minus(refractionPerpendicularComponent) :
+                refractionParallelComponent.plus(refractionPerpendicularComponent);
         } else {
-            return incident.minus(normal.scale(2 * cosAngle));
+            return incident.minus(incidentPerpendicularComponent.scale(2));
         }
+    }
+
+    private double refractionPerpendicularComponentLengthSquared(double refractionParallelComponentLengthSquared, double incidentPerpendicularComponentValue, Vector incident) {
+        var incidentOrRefractionLengthSquared = incident.lengthSquared();
+        var refractionPerpendicularComponentLengthSquared = incidentOrRefractionLengthSquared - refractionParallelComponentLengthSquared;
+        if (refractionPerpendicularComponentLengthSquared >= 0) {
+            var cosAngle = incidentPerpendicularComponentValue / Math.sqrt(incidentOrRefractionLengthSquared);
+            return RND.anyUnsigned() >= reflectance.applyAsDouble(cosAngle) ? refractionPerpendicularComponentLengthSquared : -1;
+        }
+        return refractionPerpendicularComponentLengthSquared;
     }
 
     public static DoubleUnaryOperator schlickReflectance(double index) {

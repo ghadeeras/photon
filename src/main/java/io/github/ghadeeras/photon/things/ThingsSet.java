@@ -1,6 +1,6 @@
 package io.github.ghadeeras.photon.things;
 
-import io.github.ghadeeras.photon.Box;
+import io.github.ghadeeras.photon.BoundingBox;
 import io.github.ghadeeras.photon.Thing;
 import io.github.ghadeeras.photon.structs.Incident;
 import io.github.ghadeeras.photon.structs.Ray;
@@ -29,10 +29,10 @@ public record ThingsSet(Thing... things) implements Thing {
     }
 
     @Override
-    public Box boundingVolume(double time1, double time2) {
+    public BoundingBox boundingVolume(double time1, double time2) {
         return Stream.of(things)
             .map(thing -> thing.boundingVolume(time1, time2))
-            .reduce(Box::enclose)
+            .reduce(BoundingBox::enclose)
             .orElseThrow(() -> new RuntimeException("Empty thing sets are not supported!"));
     }
 

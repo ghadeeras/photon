@@ -29,8 +29,8 @@ public sealed interface Incident {
 
         double distance();
 
-        default Global globalHit(Ray ray, Thing thing, Material material, Vector position, Vector normal, double distance) {
-            return new Global(localHit(), ray, thing, material, position, normal, distance);
+        default Global globalHit(Ray ray, Vector position, Vector normal, double distance) {
+            return new Global(localHit(), ray, position, normal, distance);
         }
 
         default Vector surfacePosition() {
@@ -46,7 +46,19 @@ public sealed interface Incident {
 
         }
 
-        record Global(Local localHit, Ray ray, Thing thing, Material material, Vector position, Vector normal, double distance) implements Hit {}
+        record Global(Local localHit, Ray ray, Vector position, Vector normal, double distance) implements Hit {
+
+            @Override
+            public Thing thing() {
+                return localHit.thing;
+            }
+
+            @Override
+            public Material material() {
+                return localHit.material();
+            }
+
+        }
 
     }
 

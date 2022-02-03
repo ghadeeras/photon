@@ -1,6 +1,6 @@
 package io.github.ghadeeras.photon.things;
 
-import io.github.ghadeeras.photon.Box;
+import io.github.ghadeeras.photon.BoundingBox;
 import io.github.ghadeeras.photon.Thing;
 import io.github.ghadeeras.photon.Transformation;
 import io.github.ghadeeras.photon.structs.Incident;
@@ -18,7 +18,7 @@ public record Transformed<T extends Thing, I>(T thing, Transformation<I> transfo
     }
 
     @Override
-    public Box boundingVolume(double time1, double time2) {
+    public BoundingBox boundingVolume(double time1, double time2) {
         return transformation.boundingVolume(thing.boundingVolume(time1, time2), time1, time2);
     }
 
