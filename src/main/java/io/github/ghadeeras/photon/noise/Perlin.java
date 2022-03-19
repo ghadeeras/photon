@@ -1,10 +1,10 @@
 package io.github.ghadeeras.photon.noise;
 
 import io.github.ghadeeras.photon.Noise;
-import io.github.ghadeeras.photon.RND;
 import io.github.ghadeeras.photon.structs.Vector;
 
-import java.util.stream.Stream;
+import static io.github.ghadeeras.photon.sampling.Samplers.shuffledIndexes;
+import static io.github.ghadeeras.photon.sampling.Samplers.sphereSurface;
 
 public class Perlin implements Noise {
 
@@ -18,13 +18,11 @@ public class Perlin implements Noise {
     private final int[] zIndices;
 
     public Perlin() {
-        randomVectors = Stream
-            .generate(RND::randomUnitVector)
-            .limit(count)
-            .toArray(Vector[]::new);
-        xIndices = RND.randomIndices(count);
-        yIndices = RND.randomIndices(count);
-        zIndices = RND.randomIndices(count);
+        var indices = shuffledIndexes(count).next(3);
+        randomVectors = sphereSurface().next(count).toArray(Vector[]::new);
+        xIndices = indices.get(0);
+        yIndices = indices.get(1);
+        zIndices = indices.get(2);
     }
 
     @Override

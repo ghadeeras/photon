@@ -1,6 +1,7 @@
 package io.github.ghadeeras.photon;
 
 import io.github.ghadeeras.photon.imaging.Image;
+import io.github.ghadeeras.photon.sampling.SampleSetsSampler;
 import io.github.ghadeeras.photon.structs.Color;
 import io.github.ghadeeras.photon.structs.Vector;
 
@@ -13,7 +14,9 @@ import java.util.function.Function;
 
 public class Sensor {
 
-    public final Sampling sampling;
+    private final Sampler<Vector> pixelSampler;
+
+    public final int samplesPerPixel;
     public final double gain;
     public final int width;
     public final int height;
@@ -21,8 +24,9 @@ public class Sensor {
     private final double halfHeight;
     private final double aspect;
 
-    public Sensor(Sampling sampling, double gain, int width, int height) {
-        this.sampling = sampling;
+    public Sensor(SampleSetsSampler<Vector> pixelSampler, double gain, int width, int height) {
+        this.pixelSampler = pixelSampler.shuffled().caching(pixelSampler.samplesPerSet() * Utils.primeJustUnder(width));
+        this.samplesPerPixel = pixelSampler.samplesPerSet();
         this.gain = gain;
         this.width = width;
         this.height = height;
@@ -77,12 +81,11 @@ public class Sensor {
 
     private Color renderPixel(Function<Vector, Color> projection, int x, int y) {
         var color = Color.of(0, 0, 0);
-        for (int sample = 0; sample < sampling.samplesPerPixel(); sample++) {
-            var dP = sampling.samplePos(sample);
+        for (var dP : pixelSampler.next(samplesPerPixel)) {
             var normP = normalized(x + dP.x(), y + dP.y());
             color = color.plus(projection.apply(normP));
         }
-        return color.scale(gain / sampling.samplesPerPixel());
+        return color.scale(gain / samplesPerPixel);
     }
 
     private Vector normalized(double x, double y) {

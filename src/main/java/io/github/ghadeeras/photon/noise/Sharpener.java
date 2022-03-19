@@ -11,7 +11,7 @@ public record Sharpener(Noise noise, int depth) implements Noise {
         var p = point;
         var w = 1D;
         for (int i = 0; i < depth; i++) {
-            result += w * noise.noise(point);
+            result += w * noise.noise(p);
             p = p.scale(2);
             w /= 2;
         }

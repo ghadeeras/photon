@@ -1,8 +1,10 @@
 package io.github.ghadeeras.photon.structs;
 
-import io.github.ghadeeras.photon.RND;
+import io.github.ghadeeras.photon.Sampler;
 
 public record Color(double red, double green, double blue) {
+
+    private static final Sampler<Double> ditheringSampler = Range.of(0, 1 / 512D).sampler().caching(0x100);
 
     public static Color colorBlack = whiteShade(0);
     public static Color colorWhite = whiteShade(1);
@@ -59,7 +61,7 @@ public record Color(double red, double green, double blue) {
     }
 
     private static double dither(double component) {
-        return clamp(component + RND.anySigned() / 512);
+        return clamp(component + ditheringSampler.next());
     }
 
     private static double clamp(double component) {

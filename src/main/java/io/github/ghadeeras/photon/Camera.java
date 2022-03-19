@@ -1,6 +1,7 @@
 package io.github.ghadeeras.photon;
 
 import io.github.ghadeeras.photon.imaging.Image;
+import io.github.ghadeeras.photon.structs.Range;
 
 public final class Camera {
 
@@ -11,7 +12,7 @@ public final class Camera {
     public final double exposure;
 
     private final Lens.Focuser focuser;
-    private final double exponentialExposure;
+    private final Sampler<Double> timeSampler;
 
     public Camera(Sensor sensor, Lens lens, double focalDistance, double aperture, double exposure) {
         this.sensor = sensor;
@@ -21,7 +22,9 @@ public final class Camera {
         this.exposure = exposure;
 
         this.focuser = lens.focuser(aperture, focalDistance);
-        this.exponentialExposure = 1 - Math.exp(-exposure);
+        this.timeSampler = exposure > 0 ? Range.of(Math.exp(-exposure), 1).sampler()
+            .map(Math::log)
+            .caching(0x10000) : () -> 0D;
     }
 
     public Image render(World world, double time, boolean withOptimization) {
@@ -30,9 +33,7 @@ public final class Camera {
     }
 
     private double before(double time) {
-        return exposure > 0 ?
-            time + Math.log(1 - RND.any(0, exponentialExposure)) :
-            time;
+        return time + timeSampler.next();
     }
 
 }

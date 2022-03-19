@@ -1,6 +1,8 @@
 package io.github.ghadeeras.photon.structs;
 
-public record Matrix(Vector x, Vector y, Vector z) {
+import java.util.function.UnaryOperator;
+
+public record Matrix(Vector x, Vector y, Vector z) implements UnaryOperator<Vector> {
 
     public static Matrix identity = Matrix.of(Vector.unitX, Vector.unitY, Vector.unitZ);
 
@@ -93,6 +95,11 @@ public record Matrix(Vector x, Vector y, Vector z) {
 
     public Vector mul(Vector vector) {
         return x.scale(vector.x()).plus(y.scale(vector.y())).plus(z.scale(vector.z()));
+    }
+
+    @Override
+    public Vector apply(Vector vector) {
+        return mul(vector);
     }
 
 }

@@ -1,10 +1,17 @@
 package io.github.ghadeeras.photon.structs;
 
+import io.github.ghadeeras.photon.Sampler;
+import io.github.ghadeeras.photon.sampling.ScalarSampler;
+
 public sealed interface Range {
 
     Range overlap(Range range);
 
     Empty empty = new Empty();
+
+    static Bounded of(double min, double max) {
+        return new Bounded(min, max);
+    }
 
     record Empty() implements Range {
 
@@ -25,6 +32,10 @@ public sealed interface Range {
                 this.min = max;
                 this.max = min;
             }
+        }
+
+        public Sampler<Double> sampler() {
+            return ScalarSampler.of(this);
         }
 
         @Override

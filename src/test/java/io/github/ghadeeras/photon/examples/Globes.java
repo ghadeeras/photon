@@ -1,18 +1,20 @@
 package io.github.ghadeeras.photon.examples;
 
-import io.github.ghadeeras.photon.*;
+import io.github.ghadeeras.photon.Camera;
+import io.github.ghadeeras.photon.Lens;
+import io.github.ghadeeras.photon.Sensor;
+import io.github.ghadeeras.photon.World;
 import io.github.ghadeeras.photon.imaging.PNG;
 import io.github.ghadeeras.photon.materials.*;
 import io.github.ghadeeras.photon.noise.Perlin;
 import io.github.ghadeeras.photon.noise.Sharpener;
-import io.github.ghadeeras.photon.sampling.RegularSampling;
+import io.github.ghadeeras.photon.sampling.RegularSquareSampler;
 import io.github.ghadeeras.photon.structs.Color;
 import io.github.ghadeeras.photon.structs.Vector;
 import io.github.ghadeeras.photon.things.Sphere;
 import io.github.ghadeeras.photon.things.ThingsSet;
 
 import java.io.IOException;
-import java.util.function.Function;
 
 public class Globes {
 
@@ -34,14 +36,16 @@ public class Globes {
         var bluish = Color.of(0.2, 0.4, 0.8);
         var perlin = new Perlin();
         var noise = new Sharpener(p -> Math.abs(perlin.noise(p)), 7);
-        var bluishMatte = Textured.with(h -> Diffusive.of(bluish.scale((noise.noise(h.localHit().position().scale(3)) + 1) / 2)));
-        var silver = Textured.with(h -> {
+        var matte = Diffusive.of(Color.colorWhite);
+        var swirly = Textured.with(h -> matte.modulated(bluish.scale((noise.noise(h.localHit().position().scale(3)) + 1) / 2)));
+        var shiny = Composite.of(
+            Reflective.of(Color.colorWhite).withWeight(0.7),
+            Diffusive.of(Color.colorWhite).withWeight(0.3)
+        );
+        var marbled = Textured.with(h -> {
             var position = h.localHit().position();
             var color = Color.whiteShade(Math.abs(Math.sin(2 * position.y() + noise.noise(position.scale(2)))));
-            return Composite.of(
-                Reflective.of(color).withWeight(0.7),
-                Diffusive.of(color).withWeight(0.3)
-            );
+            return shiny.modulated(color);
         });
         var glass = Refractive.of(1.5, Color.colorWhite);
         var light = Emissive.of(Color.whiteShade(16));
@@ -50,13 +54,13 @@ public class Globes {
 
         var subject = ThingsSet.of(
             Sphere.of(glass, 1).translated(1, 1, 1),
-            Sphere.of(bluishMatte, 2).translated(-1, -1, -1),
+            Sphere.of(swirly, 2).translated(-1, -1, -1),
             Sphere.of(textured, 2)
                 .scaled(Vector.of(0, 1, 0), 0.5, 1)
 //                .rotated(Vector.of(0, 1, 0), t -> t * Math.PI / 45)
                 .rotated(Vector.of(1, 0, -1), -Math.PI / 6)
                 .translated(-2, 2, -1),
-            Sphere.of(silver, 3)
+            Sphere.of(marbled, 3)
                 .scaled(Vector.of(0, 1, 0), 1, 2D / 3)
                 .rotated(Vector.of(2, 0, 1), -Math.PI / 6)
                 .translated(3, 0, -8),
@@ -73,13 +77,13 @@ public class Globes {
         var frameWidth = 960;
         var aspect = 4.0 / 3.0;
 
-        var quality = 1;
+        var quality = 0.1;
         int depth = 16;
 
         var world = new World(subject, Globes::galaxyFuzz, depth);
 
         var camera = new Camera(
-            newSensor(RegularSampling::of, quality, gain, aspect, frameWidth),
+            newSensor(quality, gain, aspect, frameWidth),
             new Lens(focalLength),
             focalDistance,
             aperture,
@@ -90,10 +94,10 @@ public class Globes {
         PNG.saveTo("_Globes.png", image);
     }
 
-    private static Sensor newSensor(Function<Integer, Sampling> samplingFunction, double quality, double gain, double aspect, int frameWidth) {
+    private static Sensor newSensor(double quality, double gain, double aspect, int frameWidth) {
         var frameHeight = (int) Math.round(frameWidth / aspect);
         var samplesPerPixel = (int) Math.ceil(quality * Math.pow(0x10000 / (double) Math.max(frameWidth, frameHeight), 2));
-        return new Sensor(samplingFunction.apply(samplesPerPixel), gain, frameWidth, frameHeight);
+        return new Sensor(RegularSquareSampler.of(samplesPerPixel), gain, frameWidth, frameHeight);
     }
 
     private static Color galaxyFuzz(Vector direction) {

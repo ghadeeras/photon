@@ -1,7 +1,7 @@
 package io.github.ghadeeras.photon.materials;
 
 import io.github.ghadeeras.photon.Material;
-import io.github.ghadeeras.photon.RND;
+import io.github.ghadeeras.photon.Sampler;
 import io.github.ghadeeras.photon.structs.Color;
 import io.github.ghadeeras.photon.structs.Effect;
 import io.github.ghadeeras.photon.structs.Incident;
@@ -9,24 +9,33 @@ import io.github.ghadeeras.photon.structs.Vector;
 
 import java.util.function.DoubleUnaryOperator;
 
-public record Refractive(double index, Color color, double fuzziness, DoubleUnaryOperator reflectance) implements Material {
+import static io.github.ghadeeras.photon.sampling.Samplers.sphere;
+import static io.github.ghadeeras.photon.sampling.Samplers.unsigned;
+
+public record Refractive(double index, Color color, Sampler<Vector>  fuzzinessSampler, DoubleUnaryOperator reflectance) implements Material {
+
+    private static final Sampler<Double> unsignedScalars = unsigned().caching(0x10000);
 
     public static Refractive of(double index, Color color) {
         return of(index, color, 0);
     }
 
     public static Refractive of(double index, Color color, double fuzziness) {
-        return new Refractive(index, color, fuzziness, schlickReflectance(index));
+        return new Refractive(index, color, fuzzinessSampler(fuzziness), schlickReflectance(index));
     }
 
     public static Refractive of(double index, Color color, double fuzziness, DoubleUnaryOperator reflectance) {
-        return new Refractive(index, color, fuzziness, reflectance);
+        return new Refractive(index, color, fuzzinessSampler(fuzziness), reflectance);
+    }
+
+    private static Sampler<Vector> fuzzinessSampler(double fuzziness) {
+        return fuzziness != 0 ? sphere().map(v -> v.scale(fuzziness)).caching(0x10000) : null;
     }
 
     @Override
     public Effect effectOf(Incident.Hit hit) {
-        var normal = fuzziness != 0 ?
-            hit.normal().plus(RND.randomVectorInSphere(0, fuzziness)).unit():
+        var normal = fuzzinessSampler != null ?
+            hit.normal().plus(fuzzinessSampler.next()).unit():
             hit.normal();
 
         var redirection = redirection(hit.ray().direction(), normal);
@@ -57,7 +66,7 @@ public record Refractive(double index, Color color, double fuzziness, DoubleUnar
         var refractionPerpendicularComponentLengthSquared = incidentOrRefractionLengthSquared - refractionParallelComponentLengthSquared;
         if (refractionPerpendicularComponentLengthSquared >= 0) {
             var cosAngle = incidentPerpendicularComponentValue / Math.sqrt(incidentOrRefractionLengthSquared);
-            return RND.anyUnsigned() >= reflectance.applyAsDouble(cosAngle) ? refractionPerpendicularComponentLengthSquared : -1;
+            return unsignedScalars.next() >= reflectance.applyAsDouble(cosAngle) ? refractionPerpendicularComponentLengthSquared : -1;
         }
         return refractionPerpendicularComponentLengthSquared;
     }
