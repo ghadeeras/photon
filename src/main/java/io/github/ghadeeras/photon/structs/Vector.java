@@ -1,5 +1,7 @@
 package io.github.ghadeeras.photon.structs;
 
+import static io.github.ghadeeras.photon.Utils.approximatelyEqual;
+
 public record Vector(double x, double y, double z) {
 
     public static Vector zero = of(0, 0, 0);
@@ -79,6 +81,13 @@ public record Vector(double x, double y, double z) {
 
     public Ray asRay(double time) {
         return zero.towards(this, time);
+    }
+
+    public boolean approximatelyEqualTo(Vector that) {
+        return
+            approximatelyEqual(this.x, that.x) &&
+            approximatelyEqual(this.y, that.y) &&
+            approximatelyEqual(this.z, that.z);
     }
 
 }

@@ -45,6 +45,30 @@ public record Matrix(Vector x, Vector y, Vector z) implements UnaryOperator<Vect
         );
     }
 
+    public static Matrix xAlignedWith(Vector u) {
+        var maxDot = 0.5 * u.lengthSquared();
+        var v1 = Vector.of(u.z(), u.x(), u.y());
+        var v2 = u.dot(v1) < maxDot ? v1 : Vector.of(u.x(), -2 * u.y(), u.z());
+        return alignedWith(u, v2);
+    }
+
+    public static Matrix yAlignedWith(Vector u) {
+        var m = xAlignedWith(u);
+        return Matrix.of(m.z(), m.x(), m.y());
+    }
+
+    public static Matrix zAlignedWith(Vector u) {
+        var m = xAlignedWith(u);
+        return Matrix.of(m.y(), m.z(), m.x());
+    }
+
+    public static Matrix alignedWith(Vector u, Vector v) {
+        var x = u.unit();
+        var y = v.reject(x).unit();
+        var z = x.cross(y);
+        return Matrix.of(x, y, z);
+    }
+
     public double determinant() {
         return x.cross(y).dot(z);
     }
@@ -58,11 +82,16 @@ public record Matrix(Vector x, Vector y, Vector z) implements UnaryOperator<Vect
     }
 
     public Matrix inverse() {
+        var antiMatrix = antiMatrix();
+        var det = antiMatrix.z.dot(z);
+        return antiMatrix.transposed().scale(1 / det);
+    }
+
+    public Matrix antiMatrix() {
         var xy = x.cross(y);
         var yz = y.cross(z);
         var zx = z.cross(x);
-        var det = xy.dot(z);
-        return Matrix.of(yz, zx, xy).transposed().scale(1 / det);
+        return Matrix.of(yz, zx, xy);
     }
 
     public Matrix scale(double factor) {

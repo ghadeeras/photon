@@ -5,6 +5,9 @@ import java.util.Objects;
 
 public class Utils {
 
+    public static double epsilon = 0x0.002P-7;
+    public static double halfEpsilon = epsilon / 2;
+
     @SuppressWarnings("StatementWithEmptyBody")
     public static int primeJustUnder(int n) {
         var notPrimes = new boolean[n];
@@ -28,6 +31,14 @@ public class Utils {
             .skip(1)
             .toArray(Object[]::new)
         );
+    }
+
+    public static boolean approximatelyEqual(double value1, double value2) {
+        return Math.abs(value1 - value2) < epsilon;
+    }
+
+    public static boolean relativelyEqual(double value1, double value2) {
+        return Math.abs(value1 - value2) < Math.abs((value1 + value2) * halfEpsilon);
     }
 
 }
