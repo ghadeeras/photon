@@ -1,10 +1,13 @@
 package io.github.ghadeeras.photon.sampling;
 
 import io.github.ghadeeras.photon.sampling.Surface.Point;
+import io.github.ghadeeras.photon.sampling.WeightedSampling.WeightedSample;
 import io.github.ghadeeras.photon.structs.Matrix;
 import io.github.ghadeeras.photon.structs.Vector;
 
+import java.util.List;
 import java.util.function.ToDoubleFunction;
+import java.util.stream.Stream;
 
 import static io.github.ghadeeras.photon.Utils.approximatelyEqual;
 
@@ -74,6 +77,22 @@ public class Surfaces {
             point.position().y() >= 0 &&
             approximatelyEqual(point.position().lengthSquared(), 1) &&
             point.normal().approximatelyEqualTo(point.position());
+    }
+
+    public static Surface composite(WeightedSample<Surface>... surfaces) {
+        List<WeightedSample<Surface>> surfacesWithWeight = Stream.of(surfaces).filter(surface -> surface.weight() != 0).toList();
+        return Surface.of(
+            WeightedSampling.sampler(surfaces).map(SampleSpace::next),
+            point -> compositePDF(point, surfacesWithWeight)
+        );
+    }
+
+    private static double compositePDF(Point point, List<WeightedSample<Surface>> surfacesWithWeight) {
+        double pdf = 0;
+        for (var surface : surfacesWithWeight) {
+            pdf += surface.weight() * surface.sample().applyAsDouble(point);
+        }
+        return pdf;
     }
 
 }
