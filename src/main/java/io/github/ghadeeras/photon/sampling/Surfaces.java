@@ -7,6 +7,7 @@ import io.github.ghadeeras.photon.structs.Range;
 import io.github.ghadeeras.photon.structs.Vector;
 
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Stream;
 
@@ -25,7 +26,8 @@ public class Surfaces {
     public static Surface square() {
         return Surface.of(
             Samplers.square().map(v -> Point.of(v, Vector.unitZ)),
-            p -> isInUnitSquare(p) ? 1D : 0D
+            p -> 1D,
+            Surfaces::isInUnitSquare
         );
     }
 
@@ -43,7 +45,8 @@ public class Surfaces {
     public static Surface disk() {
         return Surface.of(
             Samplers.disk().map(v -> Point.of(v, Vector.unitZ)),
-            p -> isInUnitDisk(p) ? OneByPI : 0
+            p -> OneByPI,
+            Surfaces::isInUnitDisk
         );
     }
 
@@ -56,7 +59,8 @@ public class Surfaces {
     public static Surface sphereSurface() {
         return Surface.of(
             Samplers.sphereSurface().map(v -> Point.of(v, v)),
-            p -> isOnUnitSphereSurface(p) ? OneByFourPI : 0
+            p -> OneByFourPI,
+            Surfaces::isOnUnitSphereSurface
         );
     }
 
@@ -69,7 +73,8 @@ public class Surfaces {
     public static Surface sphereSurfacePortion(double cos1, double cos2) {
         return Surface.of(
             Samplers.sphereSurfacePortion(cos1, cos2).map(v -> Point.of(v, v)),
-            sphereSurfacePortionPDF(cos1, cos2)
+            sphereSurfacePortionPDF(cos1, cos2),
+            isOnUnitSphereSurfacePortionPDF(cos1, cos2)
         );
     }
 
@@ -77,12 +82,14 @@ public class Surfaces {
         return sphereSurfacePortion(cos1, cos2).transform(Matrix.yAlignedWith(orientation));
     }
 
-    private static ToDoubleFunction<Point> sphereSurfacePortionPDF(double cos1, double cos2) {
+    private static Predicate<Point> isOnUnitSphereSurfacePortionPDF(double cos1, double cos2) {
         var cosRange = Range.of(cos1, cos2);
-        var oneByArea = OneByTwoPI / cosRange.length();
-        return p ->
-            isOnUnitSphereSurface(p) &&
-            cosRange.test(p.position().y()) ? oneByArea : 0;
+        return p -> isOnUnitSphereSurface(p) && cosRange.test(p.position().y());
+    }
+
+    private static ToDoubleFunction<Point> sphereSurfacePortionPDF(double cos1, double cos2) {
+        var oneByArea = OneByTwoPI / Math.abs(cos1 - cos2);
+        return p -> oneByArea;
     }
 
     public static Surface hemisphereSurface() {
@@ -92,7 +99,8 @@ public class Surfaces {
     public static Surface hemisphereSurface(int power) {
         return Surface.of(
             Samplers.hemisphereSurface(power).map(v -> Point.of(v, v)),
-            hemispherePDF(power)
+            hemispherePDF(power),
+            Surfaces::isHemispherePoint
         );
     }
 
@@ -106,9 +114,9 @@ public class Surfaces {
 
     private static ToDoubleFunction<Point> hemispherePDF(int power) {
         return switch (power) {
-            case 0 -> p -> isHemispherePoint(p) ? OneByTwoPI : 0;
-            case 1 -> p -> isHemispherePoint(p) ? OneByPI * p.normal().y() : 0;
-            default -> p -> isHemispherePoint(p) ? (power + 1) * OneByTwoPI * Math.pow(p.normal().y(), power) : 0;
+            case 0 -> p -> OneByTwoPI;
+            case 1 -> p -> OneByPI * p.normal().y();
+            default -> p -> (power + 1) * OneByTwoPI * Math.pow(p.normal().y(), power);
         };
     }
 
@@ -125,15 +133,16 @@ public class Surfaces {
             .filter(surface -> surface.weight() != 0)
             .toList();
         return Surface.of(
-            WeightedSampling.sampler(surfaces).map(SampleSpace::next),
-            point -> compositePDF(point, surfacesWithWeight)
+            WeightedSampling.space(surfaces).map(SampleSpace::next),
+            point -> compositePDF(point, surfacesWithWeight),
+            point -> surfacesWithWeight.stream().anyMatch(s -> s.sample().contains(point))
         );
     }
 
     private static double compositePDF(Point point, List<WeightedSample<Surface>> surfacesWithWeight) {
         double pdf = 0;
         for (var surface : surfacesWithWeight) {
-            pdf += surface.weight() * surface.sample().applyAsDouble(point);
+            pdf += surface.weight() * surface.sample().pdf(point);
         }
         return pdf;
     }

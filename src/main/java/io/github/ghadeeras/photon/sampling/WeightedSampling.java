@@ -5,6 +5,7 @@ import io.github.ghadeeras.photon.Sampler;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Stream;
 
@@ -23,14 +24,16 @@ public class WeightedSampling {
 
     @SafeVarargs
     public static <T> SampleSpace<T> space(WeightedSample<T>... samples) {
-        return SampleSpace.of(sampler(samples), pdf(samples));
+        var samplesSet = Set.of(samples);
+        var pdf = pdf(samples);
+        return SampleSpace.ofWeighted(weightedSampler(samples), pdf, samplesSet::contains);
     }
 
     @SafeVarargs
-    public static <T> Sampler<T> sampler(WeightedSample<T>... samples) {
+    public static <T> Sampler<WeightedSample<T>> weightedSampler(WeightedSample<T>... samples) {
         var weightSum = weightSum(samples);
         var normalizedSamples = normalizeWeights(samples, weightSum);
-        return unsigned().map(choice -> selectedSample(choice, normalizedSamples));
+        return unsigned().map(choice -> weightedSample(choice, normalizedSamples));
     }
 
     @SafeVarargs
@@ -58,16 +61,16 @@ public class WeightedSampling {
         return result;
     }
 
-    private static <T> T selectedSample(double choice, List<WeightedSample<T>> samples) {
-        WeightedSample<T> selectedSample = samples.get(0);
+    private static <T> WeightedSample<T> weightedSample(double choice, List<WeightedSample<T>> samples) {
+        WeightedSample<T> result = samples.get(0);
         for (var sample : samples) {
             choice -= sample.weight;
             if (choice < 0) {
-                selectedSample = sample;
+                result = sample;
                 break;
             }
         }
-        return selectedSample.sample;
+        return result;
     }
 
 }

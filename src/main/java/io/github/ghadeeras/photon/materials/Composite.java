@@ -11,7 +11,7 @@ public record Composite(Sampler<Material> materialsSampler) implements Material 
 
     @SafeVarargs
     public static Composite of(WeightedSample<Material>... materials) {
-        return new Composite(WeightedSampling.sampler(materials).caching(0x100 * materials.length));
+        return new Composite(WeightedSampling.space(materials).caching(0x100 * materials.length));
     }
 
     @Override
