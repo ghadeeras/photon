@@ -5,6 +5,9 @@ import io.github.ghadeeras.photon.structs.Matrix;
 import io.github.ghadeeras.photon.structs.Range;
 import io.github.ghadeeras.photon.structs.Vector;
 
+import java.util.function.DoubleUnaryOperator;
+import java.util.function.UnaryOperator;
+
 public class Samplers {
 
     private static final double TwoPI = 2 * Math.PI;
@@ -38,21 +41,32 @@ public class Samplers {
     }
 
     public static Sampler<Vector> sphere() {
+        var s = squareToSphereSurfacePortion(1, -1);
         return cube().map(vector -> {
-            var radius = Math.pow(vector.z(), 1D / 3D);
-            return squareToSphere(vector).scale(radius);
+            var radius = Math.cbrt(vector.z());
+            return s.apply(vector).scale(radius);
         });
     }
 
     public static Sampler<Vector> sphereSurface() {
-        return square().map(Samplers::squareToSphere);
+        return sphereSurfacePortion(1, -1);
     }
 
-    private static Vector squareToSphere(Vector vector) {
-        var y = 1 - 2 * vector.y();
-        var xz = Math.sqrt(1 - y * y);
-        var angle = TwoPI * vector.x();
-        return Vector.of(xz * Math.sin(angle), y, xz * Math.cos(angle));
+    public static Sampler<Vector> sphereSurfacePortion(double cos1, double cos2) {
+        return square().map(squareToSphereSurfacePortion(cos1, cos2));
+    }
+
+    public static Sampler<Vector> sphereSurfacePortion(Vector orientation, double cos1, double cos2) {
+        return reoriented(sphereSurfacePortion(cos1, cos2), Matrix.yAlignedWith(orientation));
+    }
+
+    public static UnaryOperator<Vector> squareToSphereSurfacePortion(double cos1, double cos2) {
+        var maxCos = Math.max(cos1, cos2);
+        var deltaCos = Math.abs(cos1 - cos2);
+        return squareToSphereSurface(deltaCos != 1 ?
+            y -> maxCos - deltaCos * y :
+            y -> maxCos - y
+        );
     }
 
     public static Sampler<Vector> hemisphereSurface() {
@@ -60,7 +74,7 @@ public class Samplers {
     }
 
     public static Sampler<Vector> hemisphereSurface(int power) {
-        return square().map(vector -> squareToHemisphere(vector, power));
+        return square().map(squareToHemisphereSurface(power));
     }
 
     public static Sampler<Vector> hemisphereSurface(Vector orientation) {
@@ -68,20 +82,26 @@ public class Samplers {
     }
 
     public static Sampler<Vector> hemisphereSurface(Vector orientation, int power) {
-        return reoriented(square().map(vector -> squareToHemisphere(vector, power)), Matrix.yAlignedWith(orientation));
+        return reoriented(hemisphereSurface(power), Matrix.yAlignedWith(orientation));
     }
 
-    public static Vector squareToHemisphere(Vector vector, int power) {
-        var c = 1 - Math.abs(vector.y() % 1);
-        var cosTheta = switch (power) {
-            case 0 -> c;
-            case 1 -> Math.sqrt(c);
-            case 2 -> Math.cbrt(c);
-            default -> Math.pow(c, 1D / (1 + power));
+    public static UnaryOperator<Vector> squareToHemisphereSurface(int power) {
+        DoubleUnaryOperator cosThetaFunction = switch (power) {
+            case 0 -> y -> 1 - y;
+            case 1 -> y -> Math.sqrt(1 - y);
+            case 2 -> y -> Math.cbrt(1 - y);
+            default -> y -> Math.pow(1 - y, 1D / (1 + power));
         };
-        var sinTheta = Math.sqrt(1 - cosTheta * cosTheta);
-        var phi = TwoPI * vector.x();
-        return Vector.of(sinTheta * Math.sin(phi), cosTheta, sinTheta * Math.cos(phi));
+        return squareToSphereSurface(cosThetaFunction);
+    }
+
+    private static UnaryOperator<Vector> squareToSphereSurface(DoubleUnaryOperator cosThetaFunction) {
+        return vector -> {
+            var cosTheta = cosThetaFunction.applyAsDouble(vector.y());
+            var sinTheta = Math.sqrt(1 - cosTheta * cosTheta);
+            var phi = TwoPI * vector.x();
+            return Vector.of(sinTheta * Math.sin(phi), cosTheta, sinTheta * Math.cos(phi));
+        };
     }
 
     private static Sampler<Vector> reoriented(Sampler<Vector> sampler, Matrix orientation) {

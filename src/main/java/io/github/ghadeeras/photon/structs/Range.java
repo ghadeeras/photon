@@ -3,9 +3,13 @@ package io.github.ghadeeras.photon.structs;
 import io.github.ghadeeras.photon.Sampler;
 import io.github.ghadeeras.photon.sampling.ScalarSampler;
 
-public sealed interface Range {
+import java.util.function.DoublePredicate;
+
+public sealed interface Range extends DoublePredicate {
 
     Range overlap(Range range);
+
+    double length();
 
     Empty empty = new Empty();
 
@@ -18,6 +22,16 @@ public sealed interface Range {
         @Override
         public Range overlap(Range range) {
             return this;
+        }
+
+        @Override
+        public double length() {
+            return 0;
+        }
+
+        @Override
+        public boolean test(double value) {
+            return false;
         }
 
     }
@@ -43,6 +57,11 @@ public sealed interface Range {
             return range instanceof Bounded that ? overlap(that) : empty;
         }
 
+        @Override
+        public double length() {
+            return max - min;
+        }
+
         public Range overlap(Bounded that) {
             if (this.min > that.max || that.min > this.max) {
                 return empty;
@@ -53,6 +72,10 @@ public sealed interface Range {
             );
         }
 
+        @Override
+        public boolean test(double value) {
+            return this.min <= value && value < this.max;
+        }
     }
 
 }
