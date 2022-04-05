@@ -1,6 +1,5 @@
 package io.github.ghadeeras.photon.noise;
 
-import io.github.ghadeeras.photon.Noise;
 import io.github.ghadeeras.photon.structs.Vector;
 
 import static io.github.ghadeeras.photon.sampling.Samplers.shuffledIndexes;

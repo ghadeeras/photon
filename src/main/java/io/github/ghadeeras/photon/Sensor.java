@@ -2,6 +2,7 @@ package io.github.ghadeeras.photon;
 
 import io.github.ghadeeras.photon.imaging.Image;
 import io.github.ghadeeras.photon.sampling.SampleSetsSampler;
+import io.github.ghadeeras.photon.sampling.Sampler;
 import io.github.ghadeeras.photon.structs.Color;
 import io.github.ghadeeras.photon.structs.Vector;
 

@@ -1,4 +1,4 @@
-package io.github.ghadeeras.photon;
+package io.github.ghadeeras.photon.noise;
 
 import io.github.ghadeeras.photon.structs.Vector;
 

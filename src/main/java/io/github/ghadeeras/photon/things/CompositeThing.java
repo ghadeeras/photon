@@ -1,18 +1,19 @@
 package io.github.ghadeeras.photon.things;
 
-import io.github.ghadeeras.photon.BoundingBox;
-import io.github.ghadeeras.photon.Thing;
+import io.github.ghadeeras.photon.geometries.CompositeSurface;
+import io.github.ghadeeras.photon.geometries.GeometricSurface;
 import io.github.ghadeeras.photon.structs.Incident;
 import io.github.ghadeeras.photon.structs.Ray;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
-public record ThingsSet(Thing... things) implements Thing {
+import static java.util.stream.Collectors.toList;
 
-    public static ThingsSet of(Thing... things) {
-        return new ThingsSet(things);
+public record CompositeThing(Thing... things) implements Thing {
+
+    public static CompositeThing of(Thing... things) {
+        return new CompositeThing(things);
     }
 
     @Override
@@ -29,16 +30,18 @@ public record ThingsSet(Thing... things) implements Thing {
     }
 
     @Override
-    public BoundingBox boundingVolume(double time1, double time2) {
-        return Stream.of(things)
-            .map(thing -> thing.boundingVolume(time1, time2))
-            .reduce(BoundingBox::enclose)
-            .orElseThrow(() -> new RuntimeException("Empty thing sets are not supported!"));
+    public GeometricSurface surface() {
+        return CompositeSurface.of(Stream.of(things)
+            .map(Thing::surface)
+            .toArray(GeometricSurface[]::new)
+        );
     }
 
     @Override
     public List<Thing> flatten() {
-        return Arrays.asList(things);
+        return Stream.of(things)
+            .flatMap(thing -> thing.flatten().stream())
+            .collect(toList());
     }
 
 }

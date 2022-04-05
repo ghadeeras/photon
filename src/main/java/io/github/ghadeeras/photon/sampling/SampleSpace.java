@@ -1,7 +1,5 @@
 package io.github.ghadeeras.photon.sampling;
 
-import io.github.ghadeeras.photon.Sampler;
-
 import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 

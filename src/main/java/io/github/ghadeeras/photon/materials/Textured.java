@@ -1,6 +1,5 @@
 package io.github.ghadeeras.photon.materials;
 
-import io.github.ghadeeras.photon.Material;
 import io.github.ghadeeras.photon.structs.Effect;
 import io.github.ghadeeras.photon.structs.Incident;
 

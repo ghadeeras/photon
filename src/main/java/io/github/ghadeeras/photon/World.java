@@ -1,6 +1,7 @@
 package io.github.ghadeeras.photon;
 
 import io.github.ghadeeras.photon.structs.*;
+import io.github.ghadeeras.photon.things.Thing;
 
 import java.util.function.Function;
 
@@ -21,10 +22,10 @@ public record World(Thing thing, Function<Vector, Color> background, int depth) 
     }
 
     private Color colorOf(Incident.Hit hit, Color color, int depth) {
-        Effect effect = hit.material().effectOf(hit);
+        Effect effect = hit.thing().material().effectOf(hit);
         var newColor = color.mul(effect.color());
         return effect instanceof Effect.Redirection redirection ?
-            trace(Ray.of(hit.ray().time(), hit.position(), redirection.vector()), newColor, depth - 1) :
+            trace(Ray.of(hit.ray().time(), hit.point().position(), redirection.vector()), newColor, depth - 1) :
             newColor;
     }
 

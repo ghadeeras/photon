@@ -1,6 +1,6 @@
 package io.github.ghadeeras.photon.structs;
 
-import io.github.ghadeeras.photon.Sampler;
+import io.github.ghadeeras.photon.sampling.Sampler;
 
 public record Color(double red, double green, double blue) {
 

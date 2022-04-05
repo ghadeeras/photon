@@ -1,7 +1,5 @@
 package io.github.ghadeeras.photon.sampling;
 
-import io.github.ghadeeras.photon.Sampler;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.IntStream;

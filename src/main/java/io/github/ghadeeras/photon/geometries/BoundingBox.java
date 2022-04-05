@@ -1,14 +1,10 @@
-package io.github.ghadeeras.photon;
+package io.github.ghadeeras.photon.geometries;
 
 import io.github.ghadeeras.photon.structs.Range;
 import io.github.ghadeeras.photon.structs.Ray;
 import io.github.ghadeeras.photon.structs.Vector;
 
-import java.util.*;
-import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
-
-import static java.util.Comparator.comparing;
 
 public record BoundingBox(Vector min, Vector max, double time1, double time2) {
 
@@ -24,33 +20,6 @@ public record BoundingBox(Vector min, Vector max, double time1, double time2) {
 
     public Vector center() {
         return min.plus(max).scale(0.5);
-    }
-
-    public Comparator<Thing> thingsOrder() {
-        Vector dimensions = max.minus(min);
-        Map<Double, List<Function<Vector, Double>>> components = new TreeMap<>();
-        putComponent(Vector::x, dimensions, components);
-        putComponent(Vector::y, dimensions, components);
-        putComponent(Vector::z, dimensions, components);
-        Function<Thing, Vector> center = thing -> thing.boundingVolume(time1, time2).center();
-        return comparing(center, components.values().stream()
-            .flatMap(List::stream)
-            .map(Comparator::comparing)
-            .reduce(Comparator::thenComparing)
-            .orElseThrow()
-        );
-    }
-
-    private static void putComponent(Function<Vector, Double> component, Vector dimensions, Map<Double, List<Function<Vector, Double>>> componentsMap) {
-        componentsMap.compute(component.apply(dimensions), (d, list) -> list == null ?
-            new ArrayList<>(Collections.singletonList(component)) :
-            append(list, component)
-        );
-    }
-
-    private static <T> List<T> append(List<T> list, T value) {
-        list.add(value);
-        return list;
     }
 
     public BoundingBox enclose(BoundingBox that) {
@@ -85,7 +54,7 @@ public record BoundingBox(Vector min, Vector max, double time1, double time2) {
     private double distanceTo(Vector bound, Ray ray, ToDoubleFunction<Vector> component) {
         return
             (component.applyAsDouble(bound) - component.applyAsDouble(ray.origin())) /
-                component.applyAsDouble(ray.direction());
+            component.applyAsDouble(ray.direction());
     }
 
 }

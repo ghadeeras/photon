@@ -1,4 +1,4 @@
-package io.github.ghadeeras.photon;
+package io.github.ghadeeras.photon.sampling;
 
 import java.util.List;
 import java.util.function.Function;

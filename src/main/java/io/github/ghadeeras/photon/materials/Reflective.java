@@ -1,7 +1,6 @@
 package io.github.ghadeeras.photon.materials;
 
-import io.github.ghadeeras.photon.Material;
-import io.github.ghadeeras.photon.Sampler;
+import io.github.ghadeeras.photon.sampling.Sampler;
 import io.github.ghadeeras.photon.structs.Color;
 import io.github.ghadeeras.photon.structs.Effect;
 import io.github.ghadeeras.photon.structs.Incident;
@@ -22,8 +21,8 @@ public record Reflective(Color color, Sampler<Vector> fuzzinessSampler) implemen
     @Override
     public Effect effectOf(Incident.Hit hit) {
         var normal = fuzzinessSampler != null ?
-            hit.normal().plus(fuzzinessSampler.next()).unit() :
-            hit.normal();
+            hit.point().normal().plus(fuzzinessSampler.next()).unit() :
+            hit.point().normal();
         var incident = hit.ray().direction();
         var reflection = incident.minus(normal.scale(2 * normal.dot(incident)));
         return Effect.redirectionOf(color, reflection);

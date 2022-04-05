@@ -1,6 +1,5 @@
 package io.github.ghadeeras.photon.noise;
 
-import io.github.ghadeeras.photon.Noise;
 import io.github.ghadeeras.photon.structs.Vector;
 
 public record Sharpener(Noise noise, int depth) implements Noise {

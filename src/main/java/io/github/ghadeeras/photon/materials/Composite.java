@@ -1,7 +1,6 @@
 package io.github.ghadeeras.photon.materials;
 
-import io.github.ghadeeras.photon.Material;
-import io.github.ghadeeras.photon.Sampler;
+import io.github.ghadeeras.photon.sampling.Sampler;
 import io.github.ghadeeras.photon.sampling.WeightedSampling;
 import io.github.ghadeeras.photon.sampling.WeightedSampling.WeightedSample;
 import io.github.ghadeeras.photon.structs.Effect;

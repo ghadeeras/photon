@@ -1,6 +1,6 @@
 package io.github.ghadeeras.photon.structs;
 
-import io.github.ghadeeras.photon.Sampler;
+import io.github.ghadeeras.photon.sampling.Sampler;
 import io.github.ghadeeras.photon.sampling.ScalarSampler;
 
 import java.util.function.DoublePredicate;

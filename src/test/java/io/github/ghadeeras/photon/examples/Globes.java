@@ -4,15 +4,16 @@ import io.github.ghadeeras.photon.Camera;
 import io.github.ghadeeras.photon.Lens;
 import io.github.ghadeeras.photon.Sensor;
 import io.github.ghadeeras.photon.World;
+import io.github.ghadeeras.photon.geometries.Sphere;
 import io.github.ghadeeras.photon.imaging.PNG;
 import io.github.ghadeeras.photon.materials.*;
 import io.github.ghadeeras.photon.noise.Perlin;
 import io.github.ghadeeras.photon.noise.Sharpener;
 import io.github.ghadeeras.photon.sampling.RegularSquareSampler;
 import io.github.ghadeeras.photon.structs.Color;
+import io.github.ghadeeras.photon.structs.Incident;
 import io.github.ghadeeras.photon.structs.Vector;
-import io.github.ghadeeras.photon.things.Sphere;
-import io.github.ghadeeras.photon.things.ThingsSet;
+import io.github.ghadeeras.photon.things.CompositeThing;
 
 import java.io.IOException;
 
@@ -37,13 +38,13 @@ public class Globes {
         var perlin = new Perlin();
         var noise = new Sharpener(p -> Math.abs(perlin.noise(p)), 7);
         var matte = Diffusive.of(Color.colorWhite);
-        var swirly = Textured.with(h -> matte.modulated(bluish.scale((noise.noise(h.localHit().position().scale(3)) + 1) / 2)));
+        var swirly = Textured.with(h -> matte.modulated(bluish.scale((noise.noise(((Incident.Hit) h.localHit()).point().position().scale(3)) + 1) / 2)));
         var shiny = Composite.of(
             Reflective.of(Color.colorWhite).withWeight(0.7),
             Diffusive.of(Color.colorWhite).withWeight(0.3)
         );
         var marbled = Textured.with(h -> {
-            var position = h.localHit().position();
+            var position = ((Incident.Hit) h.localHit()).point().position();
             var color = Color.whiteShade(Math.abs(Math.sin(2 * position.y() + noise.noise(position.scale(2)))));
             return shiny.modulated(color);
         });
@@ -52,19 +53,21 @@ public class Globes {
 
         var distance = 100;
 
-        var subject = ThingsSet.of(
-            Sphere.of(glass, 1).translated(1, 1, 1),
-            Sphere.of(swirly, 2).translated(-1, -1, -1),
-            Sphere.of(textured, 2)
+        var subject = CompositeThing.of(
+            Sphere.ofRadius(1).translated(1, 1, 1).of(glass),
+            Sphere.ofRadius(2).translated(-1, -1, -1).of(swirly),
+            Sphere.ofRadius(2)
                 .scaled(Vector.of(0, 1, 0), 0.5, 1)
 //                .rotated(Vector.of(0, 1, 0), t -> t * Math.PI / 45)
                 .rotated(Vector.of(1, 0, -1), -Math.PI / 6)
-                .translated(-2, 2, -1),
-            Sphere.of(marbled, 3)
+                .translated(-2, 2, -1)
+                .of(textured),
+            Sphere.ofRadius(3)
                 .scaled(Vector.of(0, 1, 0), 1, 2D / 3)
                 .rotated(Vector.of(2, 0, 1), -Math.PI / 6)
-                .translated(3, 0, -8),
-            Sphere.of(light, 10).translated(20, 20, 20)
+                .translated(3, 0, -8)
+                .of(marbled),
+            Sphere.ofRadius(10).translated(20, 20, 20).of(light)
         ).translated(0, 0, -distance);
 
 

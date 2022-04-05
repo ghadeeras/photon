@@ -1,4 +1,4 @@
-package io.github.ghadeeras.photon;
+package io.github.ghadeeras.photon.materials;
 
 import io.github.ghadeeras.photon.sampling.WeightedSampling.WeightedSample;
 import io.github.ghadeeras.photon.structs.Color;

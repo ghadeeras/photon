@@ -1,6 +1,6 @@
 package io.github.ghadeeras.photon.structs;
 
-import io.github.ghadeeras.photon.Thing;
+import io.github.ghadeeras.photon.things.Thing;
 
 public record Ray(Vector origin, Vector direction, double time) {
 

@@ -1,9 +1,9 @@
 package io.github.ghadeeras.photon.sampling;
 
-import io.github.ghadeeras.photon.sampling.Surface.Point;
 import io.github.ghadeeras.photon.sampling.WeightedSampling.WeightedSample;
 import io.github.ghadeeras.photon.structs.Matrix;
 import io.github.ghadeeras.photon.structs.Range;
+import io.github.ghadeeras.photon.structs.SurfacePoint;
 import io.github.ghadeeras.photon.structs.Vector;
 
 import java.util.List;
@@ -25,13 +25,13 @@ public class Surfaces {
 
     public static Surface square() {
         return Surface.of(
-            Samplers.square().map(v -> Point.of(v, Vector.unitZ)),
+            Samplers.square().map(v -> SurfacePoint.of(v, Vector.unitZ)),
             p -> 1D,
             Surfaces::isInUnitSquare
         );
     }
 
-    private static boolean isInUnitSquare(Point p) {
+    private static boolean isInUnitSquare(SurfacePoint p) {
         var px = p.position().x();
         var py = p.position().y();
         var pz = p.position().z();
@@ -44,13 +44,13 @@ public class Surfaces {
 
     public static Surface disk() {
         return Surface.of(
-            Samplers.disk().map(v -> Point.of(v, Vector.unitZ)),
+            Samplers.disk().map(v -> SurfacePoint.of(v, Vector.unitZ)),
             p -> OneByPI,
             Surfaces::isInUnitDisk
         );
     }
 
-    private static boolean isInUnitDisk(Point p) {
+    private static boolean isInUnitDisk(SurfacePoint p) {
         return
             p.position().lengthSquared() <= 1 &&
             p.normal().approximatelyEqualTo(Vector.unitZ);
@@ -58,13 +58,13 @@ public class Surfaces {
 
     public static Surface sphereSurface() {
         return Surface.of(
-            Samplers.sphereSurface().map(v -> Point.of(v, v)),
+            Samplers.sphereSurface().map(v -> SurfacePoint.of(v, v)),
             p -> OneByFourPI,
             Surfaces::isOnUnitSphereSurface
         );
     }
 
-    private static boolean isOnUnitSphereSurface(Point p) {
+    private static boolean isOnUnitSphereSurface(SurfacePoint p) {
         return
             approximatelyEqual(p.position().lengthSquared(), 1) &&
             p.normal().approximatelyEqualTo(p.position());
@@ -72,7 +72,7 @@ public class Surfaces {
 
     public static Surface sphereSurfacePortion(double cos1, double cos2) {
         return Surface.of(
-            Samplers.sphereSurfacePortion(cos1, cos2).map(v -> Point.of(v, v)),
+            Samplers.sphereSurfacePortion(cos1, cos2).map(v -> SurfacePoint.of(v, v)),
             sphereSurfacePortionPDF(cos1, cos2),
             isOnUnitSphereSurfacePortionPDF(cos1, cos2)
         );
@@ -82,12 +82,12 @@ public class Surfaces {
         return sphereSurfacePortion(cos1, cos2).transform(Matrix.yAlignedWith(orientation));
     }
 
-    private static Predicate<Point> isOnUnitSphereSurfacePortionPDF(double cos1, double cos2) {
+    private static Predicate<SurfacePoint> isOnUnitSphereSurfacePortionPDF(double cos1, double cos2) {
         var cosRange = Range.of(cos1, cos2);
         return p -> isOnUnitSphereSurface(p) && cosRange.test(p.position().y());
     }
 
-    private static ToDoubleFunction<Point> sphereSurfacePortionPDF(double cos1, double cos2) {
+    private static ToDoubleFunction<SurfacePoint> sphereSurfacePortionPDF(double cos1, double cos2) {
         var oneByArea = OneByTwoPI / Math.abs(cos1 - cos2);
         return p -> oneByArea;
     }
@@ -98,7 +98,7 @@ public class Surfaces {
 
     public static Surface hemisphereSurface(int power) {
         return Surface.of(
-            Samplers.hemisphereSurface(power).map(v -> Point.of(v, v)),
+            Samplers.hemisphereSurface(power).map(v -> SurfacePoint.of(v, v)),
             hemispherePDF(power),
             Surfaces::isHemispherePoint
         );
@@ -112,7 +112,7 @@ public class Surfaces {
         return hemisphereSurface(power).transform(Matrix.yAlignedWith(orientation));
     }
 
-    private static ToDoubleFunction<Point> hemispherePDF(int power) {
+    private static ToDoubleFunction<SurfacePoint> hemispherePDF(int power) {
         return switch (power) {
             case 0 -> p -> OneByTwoPI;
             case 1 -> p -> OneByPI * p.normal().y();
@@ -120,7 +120,7 @@ public class Surfaces {
         };
     }
 
-    private static boolean isHemispherePoint(Point point) {
+    private static boolean isHemispherePoint(SurfacePoint point) {
         return
             point.position().y() >= 0 &&
             approximatelyEqual(point.position().lengthSquared(), 1) &&
@@ -139,7 +139,7 @@ public class Surfaces {
         );
     }
 
-    private static double compositePDF(Point point, List<WeightedSample<Surface>> surfacesWithWeight) {
+    private static double compositePDF(SurfacePoint point, List<WeightedSample<Surface>> surfacesWithWeight) {
         double pdf = 0;
         for (var surface : surfacesWithWeight) {
             pdf += surface.weight() * surface.sample().pdf(point);

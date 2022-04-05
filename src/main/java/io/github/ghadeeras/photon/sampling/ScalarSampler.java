@@ -1,6 +1,5 @@
 package io.github.ghadeeras.photon.sampling;
 
-import io.github.ghadeeras.photon.Sampler;
 import io.github.ghadeeras.photon.Utils;
 import io.github.ghadeeras.photon.structs.Range;
 
