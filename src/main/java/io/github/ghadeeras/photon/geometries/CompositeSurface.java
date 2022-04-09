@@ -1,8 +1,10 @@
 package io.github.ghadeeras.photon.geometries;
 
 import io.github.ghadeeras.photon.materials.Material;
+import io.github.ghadeeras.photon.sampling.Surface;
 import io.github.ghadeeras.photon.structs.Incident;
 import io.github.ghadeeras.photon.structs.Ray;
+import io.github.ghadeeras.photon.structs.Vector;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -26,6 +28,11 @@ public record CompositeSurface(GeometricSurface... surfaces) implements Geometri
             }
         }
         return result;
+    }
+
+    @Override
+    public Surface visibleSurface(Vector viewPosition, double time) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

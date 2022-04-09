@@ -1,6 +1,8 @@
 package io.github.ghadeeras.photon.geometries;
 
 import io.github.ghadeeras.photon.materials.Material;
+import io.github.ghadeeras.photon.sampling.Surface;
+import io.github.ghadeeras.photon.sampling.Surfaces;
 import io.github.ghadeeras.photon.structs.Incident;
 import io.github.ghadeeras.photon.structs.Ray;
 import io.github.ghadeeras.photon.structs.SurfacePoint;
@@ -34,6 +36,11 @@ public record Sphere(double radius) implements GeometricSurface {
         } else {
             return incident(ray, material, -2 * halfB, min, max);
         }
+    }
+
+    @Override
+    public Surface visibleSurface(Vector viewPosition, double time) {
+        return Surfaces.sphereSurfacePortion(viewPosition.neg(), 1, 1 / viewPosition.length());
     }
 
     private Incident incident(Ray ray, Material material, double length, double min, double max) {

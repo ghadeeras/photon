@@ -1,8 +1,7 @@
 package io.github.ghadeeras.photon.transformations;
 
 import io.github.ghadeeras.photon.geometries.BoundingBox;
-import io.github.ghadeeras.photon.structs.Incident;
-import io.github.ghadeeras.photon.structs.Ray;
+import io.github.ghadeeras.photon.sampling.Surface;
 import io.github.ghadeeras.photon.structs.SurfacePoint;
 import io.github.ghadeeras.photon.structs.Vector;
 
@@ -29,17 +28,23 @@ public record Translation(DoubleFunction<Vector> position) implements Transforma
     public record Shift(Vector position) implements Transformation.Instance {
 
         @Override
-        public Ray toLocal(Ray globalRay) {
-            return Ray.of(
-                globalRay.time(),
-                globalRay.origin().minus(position),
-                globalRay.direction()
-            );
+        public Vector toLocalPosition(Vector position) {
+            return position.minus(this.position);
         }
 
         @Override
-        public Incident.Hit.Global toGlobal(Incident.Hit localHit, Ray globalRay) {
-            return localHit.globalHit(globalRay, localHit.distance(), SurfacePoint.of(localHit.point().position().plus(position), localHit.point().normal()));
+        public Vector toLocalDirection(Vector direction) {
+            return direction;
+        }
+
+        @Override
+        public SurfacePoint toGlobal(SurfacePoint localPoint) {
+            return SurfacePoint.of(localPoint.position().plus(position), localPoint.normal());
+        }
+
+        @Override
+        public Surface toGlobal(Surface surface) {
+            return surface.transform(position);
         }
 
     }

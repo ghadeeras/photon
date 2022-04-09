@@ -3,7 +3,6 @@ package io.github.ghadeeras.photon.sampling;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Stream;
 
@@ -22,13 +21,11 @@ public class WeightedSampling {
 
     @SafeVarargs
     public static <T> SampleSpace<T> space(WeightedSample<T>... samples) {
-        var samplesSet = Set.of(samples);
-        var pdf = pdf(samples);
-        return SampleSpace.ofWeighted(weightedSampler(samples), pdf, samplesSet::contains);
+        return SampleSpace.of(weightedSampler(samples), pdf(samples));
     }
 
     @SafeVarargs
-    public static <T> Sampler<WeightedSample<T>> weightedSampler(WeightedSample<T>... samples) {
+    public static <T> Sampler<T> weightedSampler(WeightedSample<T>... samples) {
         var weightSum = weightSum(samples);
         var normalizedSamples = normalizeWeights(samples, weightSum);
         return unsigned().map(choice -> weightedSample(choice, normalizedSamples));
@@ -59,7 +56,7 @@ public class WeightedSampling {
         return result;
     }
 
-    private static <T> WeightedSample<T> weightedSample(double choice, List<WeightedSample<T>> samples) {
+    private static <T> T weightedSample(double choice, List<WeightedSample<T>> samples) {
         WeightedSample<T> result = samples.get(0);
         for (var sample : samples) {
             choice -= sample.weight;
@@ -68,7 +65,7 @@ public class WeightedSampling {
                 break;
             }
         }
-        return result;
+        return result.sample;
     }
 
 }

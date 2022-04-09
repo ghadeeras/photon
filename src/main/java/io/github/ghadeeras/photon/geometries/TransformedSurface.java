@@ -1,8 +1,10 @@
 package io.github.ghadeeras.photon.geometries;
 
 import io.github.ghadeeras.photon.materials.Material;
+import io.github.ghadeeras.photon.sampling.Surface;
 import io.github.ghadeeras.photon.structs.Incident;
 import io.github.ghadeeras.photon.structs.Ray;
+import io.github.ghadeeras.photon.structs.Vector;
 import io.github.ghadeeras.photon.transformations.Transformation;
 
 import java.util.List;
@@ -13,10 +15,17 @@ public record TransformedSurface<T extends GeometricSurface, I extends Transform
 
     @Override
     public Incident incident(Ray ray, Material material, double min, double max) {
-        I instance = transformation.instance(ray.time());
+        var instance = transformation.instance(ray.time());
         var localRay = instance.toLocal(ray);
         var localIncident = surface.incident(localRay, material, min, max);
         return localIncident instanceof Incident.Hit hit ? instance.toGlobal(hit, ray) : localIncident;
+    }
+
+    @Override
+    public Surface visibleSurface(Vector viewPosition, double time) {
+        var instance = transformation.instance(time);
+        var localPosition = instance.toLocalPosition(viewPosition);
+        return instance.toGlobal(surface.visibleSurface(localPosition, time));
     }
 
     @Override

@@ -1,7 +1,10 @@
 package io.github.ghadeeras.photon.transformations;
 
 import io.github.ghadeeras.photon.geometries.BoundingBox;
-import io.github.ghadeeras.photon.structs.*;
+import io.github.ghadeeras.photon.sampling.Surface;
+import io.github.ghadeeras.photon.structs.Matrix;
+import io.github.ghadeeras.photon.structs.SurfacePoint;
+import io.github.ghadeeras.photon.structs.Vector;
 
 import java.util.function.DoubleFunction;
 import java.util.function.DoubleUnaryOperator;
@@ -12,9 +15,9 @@ public record Linear(DoubleFunction<Matrices> matrices, UnaryOperator<BoundingBo
     public static Linear scaling(Vector axis, double along, double away) {
         var matrix = Matrix.scaling(axis, along, away);
         var inverseMatrix = Matrix.scaling(axis, 1 / along, 1 / away);
-        var antiMatrix = inverseMatrix.transposed();
-        var inverseAntiMatrix = matrix.transposed();
-        var matrices = new Matrices(matrix, inverseMatrix, antiMatrix, inverseAntiMatrix);
+        var antiMatrix = matrix.antiMatrix();
+        var antiInverseMatrix = inverseMatrix.antiMatrix();
+        var matrices = new Matrices(matrix, inverseMatrix, antiMatrix, antiInverseMatrix);
         return new Linear(time -> matrices, box -> new BoundingBox(matrix.mul(box.min()), matrix.mul(box.max()), box.time1(), box.time2()));
     }
 
@@ -50,18 +53,29 @@ public record Linear(DoubleFunction<Matrices> matrices, UnaryOperator<BoundingBo
         return new BoundingBox(transformedBox.min(), transformedBox.max(), time1, time2);
     }
 
-    public record Matrices(Matrix matrix, Matrix inverseMatrix, Matrix antiMatrix, Matrix inverseAntiMatrix) implements Transformation.Instance {
+    public record Matrices(Matrix matrix, Matrix inverseMatrix, Matrix antiMatrix, Matrix antiInverseMatrix) implements Transformation.Instance {
 
         @Override
-        public Ray toLocal(Ray globalRay) {
-            return Ray.of(globalRay.time(), inverseMatrix.mul(globalRay.origin()), inverseMatrix.mul(globalRay.direction()));
+        public Vector toLocalPosition(Vector position) {
+            return inverseMatrix.mul(position);
         }
 
         @Override
-        public Incident.Hit.Global toGlobal(Incident.Hit localHit, Ray globalRay) {
-            var normal = antiMatrix.mul(localHit.point().normal());
-            Vector normal1 = matrix == antiMatrix ? normal : normal.unit();
-            return localHit.globalHit(globalRay, localHit.distance(), SurfacePoint.of(matrix.mul(localHit.point().position()), normal1));
+        public Vector toLocalDirection(Vector direction) {
+            return inverseMatrix.mul(direction);
+        }
+
+        @Override
+        public SurfacePoint toGlobal(SurfacePoint localPoint) {
+            var position = matrix.mul(localPoint.position());
+            var normal = antiMatrix.mul(localPoint.normal());
+            var unitNormal = matrix == antiMatrix ? normal : normal.unit();
+            return SurfacePoint.of(position, unitNormal);
+        }
+
+        @Override
+        public Surface toGlobal(Surface surface) {
+            return surface.transform(matrix, antiMatrix, inverseMatrix, antiInverseMatrix);
         }
 
     }

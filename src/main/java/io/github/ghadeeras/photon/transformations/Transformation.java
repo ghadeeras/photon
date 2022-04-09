@@ -2,8 +2,11 @@ package io.github.ghadeeras.photon.transformations;
 
 import io.github.ghadeeras.photon.geometries.BoundingBox;
 import io.github.ghadeeras.photon.geometries.GeometricSurface;
+import io.github.ghadeeras.photon.sampling.Surface;
 import io.github.ghadeeras.photon.structs.Incident;
 import io.github.ghadeeras.photon.structs.Ray;
+import io.github.ghadeeras.photon.structs.SurfacePoint;
+import io.github.ghadeeras.photon.structs.Vector;
 import io.github.ghadeeras.photon.things.Thing;
 
 public interface Transformation<I extends Transformation.Instance> {
@@ -22,9 +25,21 @@ public interface Transformation<I extends Transformation.Instance> {
 
     interface Instance {
 
-        Ray toLocal(Ray globalRay);
+        Vector toLocalPosition(Vector position);
 
-        Incident.Hit.Global toGlobal(Incident.Hit localHit, Ray globalRay);
+        Vector toLocalDirection(Vector direction);
+
+        default Ray toLocal(Ray globalRay) {
+            return Ray.of(globalRay.time(), toLocalPosition(globalRay.origin()), toLocalDirection(globalRay.direction()));
+        }
+
+        SurfacePoint toGlobal(SurfacePoint localPoint);
+
+        default Incident.Hit.Global toGlobal(Incident.Hit localHit, Ray globalRay) {
+            return localHit.globalHit(globalRay, localHit.distance(), toGlobal(localHit.point()));
+        }
+
+        Surface toGlobal(Surface surface);
 
     }
 

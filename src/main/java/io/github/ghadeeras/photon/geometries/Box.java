@@ -1,6 +1,7 @@
 package io.github.ghadeeras.photon.geometries;
 
 import io.github.ghadeeras.photon.materials.Material;
+import io.github.ghadeeras.photon.sampling.Surface;
 import io.github.ghadeeras.photon.structs.*;
 
 import java.util.List;
@@ -29,6 +30,11 @@ public class Box implements GeometricSurface {
         return range instanceof Range.Bounded bounded ?
             incident(ray, material, bounded, min) :
             Incident.miss;
+    }
+
+    @Override
+    public Surface visibleSurface(Vector viewPosition, double time) {
+        throw new UnsupportedOperationException();
     }
 
     private Incident incident(Ray ray, Material material, Range.Bounded bounded, double min) {

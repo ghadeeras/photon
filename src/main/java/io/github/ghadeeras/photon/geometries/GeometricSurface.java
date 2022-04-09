@@ -1,6 +1,7 @@
 package io.github.ghadeeras.photon.geometries;
 
 import io.github.ghadeeras.photon.materials.Material;
+import io.github.ghadeeras.photon.sampling.Surface;
 import io.github.ghadeeras.photon.structs.Incident;
 import io.github.ghadeeras.photon.structs.Ray;
 import io.github.ghadeeras.photon.structs.SurfacePoint;
@@ -14,6 +15,8 @@ import java.util.List;
 public interface GeometricSurface extends Transformable<GeometricSurface> {
 
     Incident incident(Ray ray, Material material, double min, double max);
+
+    Surface visibleSurface(Vector viewPosition, double time);
 
     BoundingBox boundingVolume(double time1, double time2);
 
