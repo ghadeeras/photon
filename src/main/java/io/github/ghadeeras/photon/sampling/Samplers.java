@@ -7,9 +7,13 @@ import io.github.ghadeeras.photon.structs.Vector;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.UnaryOperator;
 
+import static io.github.ghadeeras.photon.Constants.TwoPI;
+
 public class Samplers {
 
-    private static final double TwoPI = 2 * Math.PI;
+    public static Sampler<Integer> discrete(int origin, int bound) {
+        return DiscreteSampler.of(origin, bound);
+    }
 
     public static Sampler<Double> unsigned() {
         return Range.of(0, 1).sampler();
@@ -56,10 +60,10 @@ public class Samplers {
     }
 
     public static Sampler<Vector> sphereSurfacePortion(Vector orientation, double cos1, double cos2) {
-        return reoriented(sphereSurfacePortion(cos1, cos2), Matrix.yAlignedWith(orientation));
+        return yAlignedWith(orientation, sphereSurfacePortion(cos1, cos2));
     }
 
-    public static UnaryOperator<Vector> squareToSphereSurfacePortion(double cos1, double cos2) {
+    private static UnaryOperator<Vector> squareToSphereSurfacePortion(double cos1, double cos2) {
         var maxCos = Math.max(cos1, cos2);
         var deltaCos = Math.abs(cos1 - cos2);
         return squareToSphereSurface(deltaCos != 1 ?
@@ -81,7 +85,7 @@ public class Samplers {
     }
 
     public static Sampler<Vector> hemisphereSurface(Vector orientation, int power) {
-        return reoriented(hemisphereSurface(power), Matrix.yAlignedWith(orientation));
+        return yAlignedWith(orientation, hemisphereSurface(power));
     }
 
     public static UnaryOperator<Vector> squareToHemisphereSurface(int power) {
@@ -101,6 +105,10 @@ public class Samplers {
             var phi = TwoPI * vector.x();
             return Vector.of(sinTheta * Math.sin(phi), cosTheta, sinTheta * Math.cos(phi));
         };
+    }
+
+    public static Sampler<Vector> yAlignedWith(Vector orientation, Sampler<Vector> sampler) {
+        return reoriented(sampler, Matrix.yAlignedWith(orientation));
     }
 
     private static Sampler<Vector> reoriented(Sampler<Vector> sampler, Matrix orientation) {

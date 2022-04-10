@@ -1,11 +1,10 @@
 package io.github.ghadeeras.photon.sampling;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.function.ToDoubleFunction;
 import java.util.stream.Stream;
 
+import static io.github.ghadeeras.photon.sampling.Samplers.discrete;
 import static io.github.ghadeeras.photon.sampling.Samplers.unsigned;
 import static java.util.stream.Collectors.toMap;
 
@@ -20,21 +19,78 @@ public class WeightedSampling {
     }
 
     @SafeVarargs
-    public static <T> SampleSpace<T> space(WeightedSample<T>... samples) {
-        return SampleSpace.of(weightedSampler(samples), pdf(samples));
+    public static <T> SampleSpace<T> space(T... samples) {
+        return SampleSpace.of(sampler(samples), pdf(samples));
     }
 
     @SafeVarargs
-    public static <T> Sampler<T> weightedSampler(WeightedSample<T>... samples) {
-        var weightSum = weightSum(samples);
-        var normalizedSamples = normalizeWeights(samples, weightSum);
-        return unsigned().map(choice -> weightedSample(choice, normalizedSamples));
+    public static <T> SampleSpace<T> space(WeightedSample<T>... samples) {
+        return SampleSpace.of(sampler(samples), pdf(samples));
+    }
+
+    @SafeVarargs
+    public static <T> Sampler<T> sampler(T... samples) {
+        return discrete(0, samples.length).map(choice -> samples[choice]);
+    }
+
+    @SafeVarargs
+    public static <T> Sampler<T> sampler(WeightedSample<T>... samples) {
+        var sum = weightSum(samples);
+        return unsigned().map(choice -> chooseSample(choice * sum, samples));
+    }
+
+    @SafeVarargs
+    public static <T> ToDoubleFunction<T> pdf(T... samples) {
+        var pdf = 1D / samples.length;
+        return s -> pdf;
     }
 
     @SafeVarargs
     public static <T> ToDoubleFunction<T> pdf(WeightedSample<T>... samples) {
         Map<T, Double> weightsMap = Stream.of(samples).collect(toMap(WeightedSample::sample, WeightedSample::weight, Double::sum));
         return weightsMap::get;
+    }
+
+    @SafeVarargs
+    public static <T> SampleSpace<T> mixedSpace(SampleSpace<T>... spaces) {
+        return SampleSpace.of(mixedSampler(spaces), mixedPDF(spaces));
+    }
+
+    @SafeVarargs
+    public static <T> SampleSpace<T> mixedSpace(WeightedSample<SampleSpace<T>>... spaces) {
+        return SampleSpace.of(mixedSampler(spaces), mixedPDF(spaces));
+    }
+
+    @SafeVarargs
+    public static <T, S extends Sampler<T>> Sampler<T> mixedSampler(S... samplers) {
+        return sampler(samplers).map(Sampler::next);
+    }
+
+    @SafeVarargs
+    public static <T, S extends Sampler<T>> Sampler<T> mixedSampler(WeightedSample<S>... samplers) {
+        return sampler(samplers).map(Sampler::next);
+    }
+
+    @SafeVarargs
+    public static <T, P extends ToDoubleFunction<T>> ToDoubleFunction<T> mixedPDF(P... pdfs) {
+        return s -> {
+            var result = 0D;
+            for (var pdf : pdfs) {
+                result += pdf.applyAsDouble(s);
+            }
+            return result / pdfs.length;
+        };
+    }
+
+    @SafeVarargs
+    public static <T, P extends ToDoubleFunction<T>> ToDoubleFunction<T> mixedPDF(WeightedSample<P>... pdfs) {
+        return s -> {
+            var result = 0D;
+            for (var pdf : pdfs) {
+                result += pdf.weight * pdf.sample.applyAsDouble(s);
+            }
+            return result / weightSum(pdfs);
+        };
     }
 
     private static <T> double weightSum(WeightedSample<T>[] samples) {
@@ -45,19 +101,8 @@ public class WeightedSampling {
         return sum;
     }
 
-    private static <T> List<WeightedSample<T>> normalizeWeights(WeightedSample<T>[] samples, double weightSum) {
-        var result = new ArrayList<WeightedSample<T>>(samples.length);
-        for (WeightedSample<T> sample : samples) {
-            if (sample.weight == 0) {
-                continue;
-            }
-            result.add(WeightedSample.of(sample.sample, sample.weight / weightSum));
-        }
-        return result;
-    }
-
-    private static <T> T weightedSample(double choice, List<WeightedSample<T>> samples) {
-        WeightedSample<T> result = samples.get(0);
+    private static <T> T chooseSample(double choice, WeightedSample<T>[] samples) {
+        WeightedSample<T> result = samples[0];
         for (var sample : samples) {
             choice -= sample.weight;
             if (choice < 0) {

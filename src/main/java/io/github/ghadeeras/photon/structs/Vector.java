@@ -83,11 +83,8 @@ public record Vector(double x, double y, double z) {
         return zero.towards(this, time);
     }
 
-    public boolean approximatelyEqualTo(Vector that) {
-        return
-            approximatelyEqual(this.x, that.x) &&
-            approximatelyEqual(this.y, that.y) &&
-            approximatelyEqual(this.z, that.z);
+    public boolean hasUnitLength() {
+        return approximatelyEqual(lengthSquared(), 0);
     }
 
 }
