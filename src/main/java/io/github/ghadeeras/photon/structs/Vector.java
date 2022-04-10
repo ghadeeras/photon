@@ -84,7 +84,7 @@ public record Vector(double x, double y, double z) {
     }
 
     public boolean hasUnitLength() {
-        return approximatelyEqual(lengthSquared(), 0);
+        return approximatelyEqual(lengthSquared(), 1);
     }
 
 }

@@ -8,14 +8,12 @@ import java.util.stream.IntStream;
 
 public class ShuffledIndexesSampler implements Sampler<int[]> {
 
+    private final static ThreadLocal<Random> random  = ThreadLocal.withInitial(() -> new Random(Utils.staticHashCode()));
+
     private final int indexesCount;
-    private final ThreadLocal<Random> random;
 
     private ShuffledIndexesSampler(int indexesCount) {
         this.indexesCount = indexesCount;
-        this.random = ThreadLocal.withInitial(() -> new Random(
-            (long) Utils.staticHashCode() * (long) indexesCount
-        ));
     }
 
     public static ShuffledIndexesSampler of(int indexesCount) {

@@ -2,6 +2,7 @@ package io.github.ghadeeras.photon;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 public class Utils {
 
@@ -26,11 +27,12 @@ public class Utils {
 
     public static int staticHashCode() {
         var exception = new Exception();
-        return Objects.hash(Arrays.stream(exception.getStackTrace())
-            .filter(e -> e.getClassName().startsWith(Utils.class.getPackageName()))
-            .skip(1)
-            .toArray(Object[]::new)
-        );
+        return Objects.hash(Stream.concat(
+            Stream.of(Thread.currentThread().getName()),
+            Arrays.stream(exception.getStackTrace())
+                .filter(e -> e.getClassName().startsWith(Utils.class.getPackageName()))
+                .skip(1)
+        ).toArray(Object[]::new));
     }
 
     public static boolean approximatelyEqual(double value1, double value2) {

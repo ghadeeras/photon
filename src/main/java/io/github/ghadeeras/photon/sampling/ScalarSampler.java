@@ -7,14 +7,12 @@ import java.util.Random;
 
 public final class ScalarSampler implements Sampler<Double> {
 
+    private final static ThreadLocal<Random> random  = ThreadLocal.withInitial(() -> new Random(Utils.staticHashCode()));
+
     private final Range.Bounded range;
-    private final ThreadLocal<Random> random;
 
     private ScalarSampler(Range.Bounded range) {
         this.range = range;
-        this.random = ThreadLocal.withInitial(() -> new Random(
-            (long) Utils.staticHashCode() * (long) range.hashCode()
-        ));
     }
 
     public static ScalarSampler of(Range.Bounded range) {

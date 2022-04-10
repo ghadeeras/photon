@@ -15,6 +15,10 @@ import java.util.function.Function;
 
 public class Sensor {
 
+    private static boolean debugging = false;
+    private static int testX = 270;
+    private static int testY = 130;
+
     private final Sampler<Vector> pixelSampler;
 
     public final int samplesPerPixel;
@@ -35,21 +39,27 @@ public class Sensor {
         var halfWidth = width / 2.0;
         this.halfHeight = height / 2.0;
         this.aspect = halfWidth / halfHeight;
+
+        System.out.println("Samples per pixel = " + this.samplesPerPixel);
     }
 
     public Image render(Function<Vector, Color> projection) {
         var image = new Image(width, height);
-        renderTo(image, projection);
+        if (debugging) {
+            renderPixel(projection, testX, testY);
+        } else {
+            renderTo(image, projection);
+        }
         return image;
     }
 
     private void renderTo(Image image, Function<Vector, Color> projection) {
         var threads = Runtime.getRuntime().availableProcessors();
-        System.out.printf("Spawning %s threads ...%n", threads);
-//        renderPixel(projection, image.width / 4, 0);
         var service = Executors.newFixedThreadPool(threads);
+        System.out.printf("[%s] Spawning %s threads ...%n", LocalTime.now(), threads);
         var futureRows = renderConcurrentlyTo(image, projection, service);
         waitFor(futureRows);
+        System.out.printf("[%s] Done!%n", LocalTime.now());
         service.shutdown();
     }
 
@@ -83,6 +93,9 @@ public class Sensor {
     private Color renderPixel(Function<Vector, Color> projection, int x, int y) {
         var color = Color.of(0, 0, 0);
         for (var dP : pixelSampler.next(samplesPerPixel)) {
+            if (debugging) {
+                dP = Vector.zero;
+            }
             var normP = normalized(x + dP.x(), y + dP.y());
             color = color.plus(projection.apply(normP));
         }

@@ -14,12 +14,7 @@ public interface Material {
     }
 
     default Material modulated(Color color) {
-        return hit -> {
-            var effect = effectOf(hit);
-            return effect instanceof Effect.Redirection r ?
-                Effect.redirectionOf(r.color().mul(color), r.vector()) :
-                Effect.emissionOf(effect.color().mul(color));
-        };
+        return hit -> effectOf(hit).modulated(color);
     }
 
 }
