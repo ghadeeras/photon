@@ -34,8 +34,8 @@ public record Refractive(double index, Color color, Sampler<Vector>  fuzzinessSa
     @Override
     public Effect effectOf(Incident.Hit hit) {
         var normal = fuzzinessSampler != null ?
-            hit.point().normal().plus(fuzzinessSampler.next()).unit():
-            hit.point().normal();
+            hit.point().sampleArea().unit().plus(fuzzinessSampler.next()).unit():
+            hit.point().sampleArea().unit();
 
         var redirection = redirection(hit.ray().direction(), normal);
 

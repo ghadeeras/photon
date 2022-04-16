@@ -25,8 +25,10 @@ public record TransformedThing<T extends Thing, I extends Transformation.Instanc
     }
 
     @Override
-    public List<Thing> flatten() {
-        return thing.flatten().stream().map(transformation::transform).collect(toList());
+    public List<AtomicThing> flatten() {
+        return thing.flatten().stream()
+            .map(thing -> new AtomicThing(thing.surface().transformed(transformation), thing.material()))
+            .collect(toList());
     }
 
 }

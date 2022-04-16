@@ -1,7 +1,7 @@
 package io.github.ghadeeras.photon.geometries;
 
 import io.github.ghadeeras.photon.materials.Material;
-import io.github.ghadeeras.photon.sampling.Surface;
+import io.github.ghadeeras.photon.sampling.Sampler;
 import io.github.ghadeeras.photon.structs.*;
 
 import java.util.List;
@@ -11,6 +11,9 @@ import static java.util.Collections.singletonList;
 public class Box implements GeometricSurface {
 
     private final BoundingBox boundingBox;
+    private final Vector areaX;
+    private final Vector areaY;
+    private final Vector areaZ;
 
     public Box(Vector dimensions) {
         boundingBox = new BoundingBox(
@@ -18,6 +21,9 @@ public class Box implements GeometricSurface {
             dimensions.scale(1D / 2),
             0, 0
         );
+        areaX = Vector.unitX.scale(dimensions.y() * dimensions.z() / 3);
+        areaY = Vector.unitY.scale(dimensions.z() * dimensions.x() / 3);
+        areaZ = Vector.unitZ.scale(dimensions.x() * dimensions.y() / 3);
     }
 
     public static Box ofSize(double width, double height, double depth) {
@@ -33,7 +39,7 @@ public class Box implements GeometricSurface {
     }
 
     @Override
-    public Surface visibleSurface(Vector viewPosition, double time) {
+    public Sampler<Vector> visibleSurface(Vector viewPosition, double time) {
         throw new UnsupportedOperationException();
     }
 
@@ -41,17 +47,17 @@ public class Box implements GeometricSurface {
         var distance = bounded.min() > min ? bounded.min() : bounded.max();
         var position = ray.origin().plus(ray.direction().scale(distance));
         if (approximatelyEqual(position.x(), boundingBox.min().x())) {
-            return hit(ray, material, position, Vector.unitX.neg(), distance);
+            return hit(ray, material, position, areaX.neg(), distance);
         } else if (approximatelyEqual(position.y(), boundingBox.min().y())) {
-            return hit(ray, material, position, Vector.unitY.neg(), distance);
+            return hit(ray, material, position, areaY.neg(), distance);
         } else if (approximatelyEqual(position.z(), boundingBox.min().z())) {
-            return hit(ray, material, position, Vector.unitZ.neg(), distance);
+            return hit(ray, material, position, areaZ.neg(), distance);
         } else if (approximatelyEqual(position.x(), boundingBox.max().x())) {
-            return hit(ray, material, position, Vector.unitX, distance);
+            return hit(ray, material, position, areaX, distance);
         } else if (approximatelyEqual(position.y(), boundingBox.max().y())) {
-            return hit(ray, material, position, Vector.unitY, distance);
+            return hit(ray, material, position, areaY, distance);
         } else if (approximatelyEqual(position.z(), boundingBox.max().z())) {
-            return hit(ray, material, position, Vector.unitZ, distance);
+            return hit(ray, material, position, areaZ, distance);
         }
         return Incident.miss;
     }
@@ -60,8 +66,8 @@ public class Box implements GeometricSurface {
         return Math.abs(v1 - v2) < 0.001;
     }
 
-    private Incident.Hit hit(Ray ray, Material material, Vector position, Vector normal, double distance) {
-        return Incident.of(ray, this.of(material), SurfacePoint.of(position, normal), distance);
+    private Incident.Hit hit(Ray ray, Material material, Vector position, Vector area, double distance) {
+        return Incident.of(ray, this.of(material), SurfacePoint.of(position, area), distance);
     }
 
     @Override

@@ -19,7 +19,7 @@ public record Diffusive(Color color) implements Material {
     }
 
     public static SampleSpace<Vector> scatteringSpace(Incident.Hit hit) {
-        return SampleSpaces.hemisphereSurface(hit.point().normal(), 1);
+        return SampleSpaces.hemisphereSurface(hit.point().sampleArea(), 1);
     }
 
 }

@@ -19,9 +19,6 @@ import io.github.ghadeeras.photon.things.CompositeThing;
 
 import java.io.IOException;
 
-import static io.github.ghadeeras.photon.sampling.WeightedSampling.WeightedSample;
-import static io.github.ghadeeras.photon.sampling.WeightedSampling.mixedSpace;
-
 public class Globes {
 
     public static void main(String[] args) throws IOException {
@@ -73,7 +70,7 @@ public class Globes {
                 .translated(3, 0, -8)
                 .of(marbled),
             Sphere.ofRadius(10).translated(20, 20, 20).of(light)
-        ).translated(0, 0, -distance);
+        ).translated(-0.35, -0.2, -distance);
 
         var focalLength = 30;
         var aperture = 0;
@@ -87,20 +84,11 @@ public class Globes {
         var quality = 0.1;
         int depth = 16;
 
-        World.ImportantDirections lightSampler = hit -> mixedSpace(
-            WeightedSample.of(lightSampleSpace(Vector.of(20, 20, 20 - distance), 10D, hit), 2),
-            WeightedSample.of(lightSampleSpace(Vector.of(1, 1, 1 - distance), 1D, hit), 1),
-            WeightedSample.of(lightSampleSpace(Vector.of(-1, -1, -1 - distance), 2D, hit), 1),
-            WeightedSample.of(lightSampleSpace(Vector.of(-2, 2, -1 - distance), 2D, hit), 1),
-            WeightedSample.of(lightSampleSpace(Vector.of(3, 0, -8 - distance), 3D, hit), 1)
-        );
-
         var world = new World(
             subject,
             Globes::galaxyFuzz,
             depth,
-//            Diffusive::scatteringSpace
-            lightSampler
+            (thing, things) -> thing.material() instanceof Emissive ? 2D : 1D
         );
 
         var camera = new Camera(

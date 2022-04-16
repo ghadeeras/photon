@@ -1,8 +1,6 @@
 package io.github.ghadeeras.photon.transformations;
 
 import io.github.ghadeeras.photon.geometries.BoundingBox;
-import io.github.ghadeeras.photon.sampling.Surface;
-import io.github.ghadeeras.photon.structs.SurfacePoint;
 import io.github.ghadeeras.photon.structs.Vector;
 
 import java.util.function.DoubleFunction;
@@ -38,13 +36,13 @@ public record Translation(DoubleFunction<Vector> position) implements Transforma
         }
 
         @Override
-        public SurfacePoint toGlobal(SurfacePoint localPoint) {
-            return SurfacePoint.of(localPoint.position().plus(position), localPoint.normal());
+        public Vector toGlobalPosition(Vector position) {
+            return position.plus(this.position);
         }
 
         @Override
-        public Surface toGlobal(Surface surface) {
-            return surface.transform(position);
+        public Vector toGlobalArea(Vector area) {
+            return area;
         }
 
     }

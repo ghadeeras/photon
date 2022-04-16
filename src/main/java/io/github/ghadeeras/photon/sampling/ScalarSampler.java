@@ -1,6 +1,6 @@
 package io.github.ghadeeras.photon.sampling;
 
-import io.github.ghadeeras.photon.Utils;
+import io.github.ghadeeras.photon.misc.Utils;
 import io.github.ghadeeras.photon.structs.Range;
 
 import java.util.Random;

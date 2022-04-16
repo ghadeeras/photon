@@ -17,7 +17,7 @@ public record AtomicThing(GeometricSurface surface, Material material) implement
     }
 
     @Override
-    public List<Thing> flatten() {
+    public List<AtomicThing> flatten() {
         return surface.flatten().stream()
             .map(surface -> surface.of(material))
             .collect(toList());

@@ -36,7 +36,7 @@ public record ThingsTree(Thing thing1, Thing thing2, BoundingBox boundingVolume)
     }
 
     @Override
-    public List<Thing> flatten() {
+    public List<AtomicThing> flatten() {
         return Stream.of(thing1, thing2)
             .flatMap(thing -> thing.flatten().stream())
             .collect(toList());

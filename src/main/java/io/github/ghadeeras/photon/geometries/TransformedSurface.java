@@ -1,7 +1,7 @@
 package io.github.ghadeeras.photon.geometries;
 
 import io.github.ghadeeras.photon.materials.Material;
-import io.github.ghadeeras.photon.sampling.Surface;
+import io.github.ghadeeras.photon.sampling.Sampler;
 import io.github.ghadeeras.photon.structs.Incident;
 import io.github.ghadeeras.photon.structs.Ray;
 import io.github.ghadeeras.photon.structs.Vector;
@@ -22,10 +22,10 @@ public record TransformedSurface<T extends GeometricSurface, I extends Transform
     }
 
     @Override
-    public Surface visibleSurface(Vector viewPosition, double time) {
+    public Sampler<Vector> visibleSurface(Vector viewPosition, double time) {
         var instance = transformation.instance(time);
         var localPosition = instance.toLocalPosition(viewPosition);
-        return instance.toGlobal(surface.visibleSurface(localPosition, time));
+        return surface.visibleSurface(localPosition, time).map(instance::toGlobalPosition);
     }
 
     @Override

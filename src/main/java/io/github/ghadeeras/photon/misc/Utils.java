@@ -1,13 +1,13 @@
-package io.github.ghadeeras.photon;
+package io.github.ghadeeras.photon.misc;
 
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-public class Utils {
+import static io.github.ghadeeras.photon.misc.Constants.epsilon;
+import static io.github.ghadeeras.photon.misc.Constants.halfEpsilon;
 
-    public static double epsilon = 0x0.002P-7;
-    public static double halfEpsilon = epsilon / 2;
+public class Utils {
 
     @SuppressWarnings("StatementWithEmptyBody")
     public static int primeJustUnder(int n) {

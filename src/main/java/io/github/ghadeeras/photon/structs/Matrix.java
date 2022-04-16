@@ -88,10 +88,11 @@ public record Matrix(Vector x, Vector y, Vector z) implements UnaryOperator<Vect
     }
 
     public Matrix antiMatrix() {
-        var xy = x.cross(y);
-        var yz = y.cross(z);
-        var zx = z.cross(x);
-        return Matrix.of(yz, zx, xy);
+        return Matrix.of(
+            y.cross(z),
+            z.cross(x),
+            x.cross(y)
+        );
     }
 
     public Matrix scale(double factor) {

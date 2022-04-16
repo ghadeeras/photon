@@ -38,7 +38,7 @@ public record CompositeThing(Thing... things) implements Thing {
     }
 
     @Override
-    public List<Thing> flatten() {
+    public List<AtomicThing> flatten() {
         return Stream.of(things)
             .flatMap(thing -> thing.flatten().stream())
             .collect(toList());

@@ -1,6 +1,6 @@
 package io.github.ghadeeras.photon.structs;
 
-import static io.github.ghadeeras.photon.Utils.approximatelyEqual;
+import static io.github.ghadeeras.photon.misc.Utils.approximatelyEqual;
 
 public record Vector(double x, double y, double z) {
 
@@ -68,7 +68,11 @@ public record Vector(double x, double y, double z) {
     }
 
     public Vector unit() {
-        return scale(1 / length());
+        return withLength(1);
+    }
+
+    public Vector withLength(double newLength) {
+        return scale(newLength / length());
     }
 
     public Ray towards(Vector that, double time) {

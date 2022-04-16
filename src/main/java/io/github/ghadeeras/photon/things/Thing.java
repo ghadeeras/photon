@@ -18,7 +18,7 @@ public interface Thing extends Transformable<Thing> {
 
     GeometricSurface surface();
 
-    List<Thing> flatten();
+    List<AtomicThing> flatten();
 
     default <I extends Transformation.Instance> Thing transformed(Transformation<I> transformation) {
         return new TransformedThing<>(this, transformation);

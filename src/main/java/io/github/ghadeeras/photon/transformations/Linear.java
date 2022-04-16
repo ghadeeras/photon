@@ -1,9 +1,7 @@
 package io.github.ghadeeras.photon.transformations;
 
 import io.github.ghadeeras.photon.geometries.BoundingBox;
-import io.github.ghadeeras.photon.sampling.Surface;
 import io.github.ghadeeras.photon.structs.Matrix;
-import io.github.ghadeeras.photon.structs.SurfacePoint;
 import io.github.ghadeeras.photon.structs.Vector;
 
 import java.util.function.DoubleFunction;
@@ -66,16 +64,13 @@ public record Linear(DoubleFunction<Matrices> matrices, UnaryOperator<BoundingBo
         }
 
         @Override
-        public SurfacePoint toGlobal(SurfacePoint localPoint) {
-            var position = matrix.mul(localPoint.position());
-            var normal = antiMatrix.mul(localPoint.normal());
-            var unitNormal = matrix == antiMatrix ? normal : normal.unit();
-            return SurfacePoint.of(position, unitNormal);
+        public Vector toGlobalPosition(Vector position) {
+            return matrix.mul(position);
         }
 
         @Override
-        public Surface toGlobal(Surface surface) {
-            return surface.transform(matrix, antiMatrix, inverseMatrix, antiInverseMatrix);
+        public Vector toGlobalArea(Vector area) {
+            return antiMatrix.mul(area);
         }
 
     }

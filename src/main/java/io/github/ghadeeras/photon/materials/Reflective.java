@@ -21,8 +21,8 @@ public record Reflective(Color color, Sampler<Vector> fuzzinessSampler) implemen
     @Override
     public Effect effectOf(Incident.Hit hit) {
         var normal = fuzzinessSampler != null ?
-            hit.point().normal().plus(fuzzinessSampler.next()).unit() :
-            hit.point().normal();
+            hit.point().sampleArea().unit().plus(fuzzinessSampler.next()).unit() :
+            hit.point().sampleArea().unit();
         var incident = hit.ray().direction();
         var reflection = incident.minus(normal.scale(2 * normal.dot(incident)));
         return Effect.redirectionOf(color, reflection);

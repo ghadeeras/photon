@@ -7,7 +7,7 @@ import io.github.ghadeeras.photon.structs.Vector;
 import java.util.function.DoubleUnaryOperator;
 import java.util.function.UnaryOperator;
 
-import static io.github.ghadeeras.photon.Constants.TwoPI;
+import static io.github.ghadeeras.photon.misc.Constants.TwoPI;
 
 public class Samplers {
 
@@ -32,7 +32,7 @@ public class Samplers {
     }
 
     public static Sampler<Vector> cube() {
-        return unsigned().mapTuplesOf(3, tuple -> Vector.of(tuple.get(0), tuple.get(1), tuple.get(3)));
+        return unsigned().mapTuplesOf(3, tuple -> Vector.of(tuple.get(0), tuple.get(1), tuple.get(2)));
     }
 
     public static Sampler<Vector> disk() {
